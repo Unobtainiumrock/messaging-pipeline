@@ -22,4 +22,7 @@ webdriver-manager>=3.5.0
 
 # Testing
 pytest>=7.0.0
-pytest-mock>=3.6.0 
+pytest-mock>=3.6.0
+
+# Job scheduling
+python-crontab>=3.2.0 

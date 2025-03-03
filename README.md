@@ -21,6 +21,18 @@ An automated system to centralize communications from multiple platforms (Email,
 4. Set environment variables in `.env` (copy from `.env.example`)
 5. Run the main application: `python src/main.py`
 
+## VS Code Configuration
+
+If you're using VS Code, set up the correct Python interpreter to avoid import resolution issues:
+
+1. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+2. Type "Python: Select Interpreter"
+3. Select the "**Pyenv**" option (e.g., `Python 3.12.3 64-bit ('3.12.3') ~/.pyenv/versions/3.12.3/bin/python`)
+4. **Important**: Make sure to select the "Pyenv" option specifically, not the similar "Recommended" or "Workspace" options
+5. Restart VS Code or reload the window
+
+This ensures that VS Code correctly resolves all imports, including the `crontab` module used in scheduling scripts.
+
 ## Requirements
 
 - Python 3.9+
