@@ -44,6 +44,17 @@ python -m spacy download en_core_web_sm
 echo "Installing Node.js dependencies..."
 npm install
 
+# Verify puppeteer version for security
+PUPPETEER_VERSION=$(npm list puppeteer | grep puppeteer | cut -d@ -f2)
+REQUIRED_VERSION="24.3.1"
+if [[ "$(printf '%s\n' "$REQUIRED_VERSION" "$PUPPETEER_VERSION" | sort -V | head -n1)" != "$REQUIRED_VERSION" ]]; then
+  echo "Warning: Puppeteer version $PUPPETEER_VERSION is installed, but version $REQUIRED_VERSION or higher is recommended for security."
+  echo "Running: npm install puppeteer@latest --save"
+  npm install puppeteer@latest --save
+else
+  echo "Puppeteer version $PUPPETEER_VERSION installed (meets security requirements)."
+fi
+
 # Create necessary directories
 echo "Creating necessary directories..."
 mkdir -p screenshots
@@ -57,8 +68,28 @@ if [ ! -f .env ]; then
     echo "Please edit .env file with your credentials."
 fi
 
+# Make sure Google credentials directory exists
+if [ ! -d "config/credentials" ]; then
+    mkdir -p config/credentials
+    echo "Created config/credentials directory for API credentials"
+fi
+
+# Create empty .gitkeep in credentials directory to ensure it's tracked by git
+touch config/credentials/.gitkeep
+
+# Add executable permissions to Python scripts
+chmod +x src/main.py
+if [ -f "scripts/schedule_job.py" ]; then
+    chmod +x scripts/schedule_job.py
+fi
+
+echo ""
 echo "Setup complete!"
+echo "--------------------------------------------------"
 echo "Next steps:"
 echo "1. Edit .env file with your credentials"
 echo "2. Add API credentials to config/credentials/ directory"
-echo "3. Run the application with 'python src/main.py'" 
+echo "3. Run the application with: python src/main.py"
+echo "--------------------------------------------------"
+echo "To run scheduled jobs: python scripts/schedule_job.py schedule --frequency hourly"
+echo "For more information, see the README.md file" 

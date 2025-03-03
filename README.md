@@ -16,7 +16,7 @@ An automated system to centralize communications from multiple platforms (Email,
 ## Setup
 
 1. Clone this repository
-2. Run the setup script: `bash scripts/setup.sh`
+2. Run the setup script: `bash setup.sh`
 3. Configure credentials in `config/credentials/` following the README there
 4. Set environment variables in `.env` (copy from `.env.example`)
 5. Run the main application: `python src/main.py`
@@ -25,6 +25,7 @@ An automated system to centralize communications from multiple platforms (Email,
 
 - Python 3.9+
 - Node.js 14+ (for Puppeteer scripts)
+- Puppeteer 24.3.1+ (earlier versions have security vulnerabilities)
 - Google Cloud Platform account for API access
 - PhantomBuster account for LinkedIn automation
 - Calendly account
@@ -44,6 +45,7 @@ comm-centralizer/
 ├── README.md                  # Project documentation
 ├── requirements.txt           # Python dependencies
 ├── package.json               # Node.js dependencies (for Puppeteer)
+├── setup.sh                   # Initial setup script
 ├── config/                    # Configuration files
 │   ├── config.py              # Main configuration 
 │   └── credentials/           # Store credentials (gitignored)
@@ -76,11 +78,12 @@ comm-centralizer/
 │   │       └── utils.js       # Shared JS utilities
 │   └── main.py                # Main application entry point
 ├── scripts/                   # Utility scripts
-│   ├── setup.sh               # Initial setup script
 │   └── schedule_job.py        # For scheduled runs
 └── tests/                     # Testing modules
     ├── __init__.py
     ├── test_connectors.py
     ├── test_processing.py
+    ├── test_storage.py
+    ├── test_automation.py
     └── test_scheduling.py
 ```
