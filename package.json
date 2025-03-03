@@ -1,0 +1,14 @@
+{
+  "name": "comm-centralizer",
+  "version": "1.0.0",
+  "description": "Browser automation for communication centralizer",
+  "main": "src/automation/puppeteer_scripts/index.js",
+  "scripts": {
+    "handshake": "node src/automation/puppeteer_scripts/handshake.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "puppeteer": "^19.6.0",
+    "dotenv": "^16.0.0"
+  }
+} 
