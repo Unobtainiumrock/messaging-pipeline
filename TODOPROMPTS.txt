@@ -1,0 +1,15 @@
+1. Do we need to have storage classes corresponding to each test_<integration name>.py file we have?
+2. We currently have the following integrations done:
+    - [x] Sheets
+    - [x] Gmail
+    - [ ] LinkedIn
+    - [ ] Handshake
+    - [ ] Slack
+    - [ ] Discord
+    - [ ] Outlook
+    Do we need to create a storage class for each of these?
+    If so, what should the name of the class be?
+    What should the attributes and methods of the class be?
+    What should the __init__ method of the class be?
+    What should the __str__ method of the class be?
+    What should the __repr__ method of the class be?
