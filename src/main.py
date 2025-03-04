@@ -18,6 +18,7 @@ from src.connectors.handshake_connector import HandshakeConnector
 from src.connectors.slack_connector import SlackConnector
 from src.connectors.discord_connector import DiscordConnector
 from src.storage.google_sheets import GoogleSheetsStorage
+from src.storage.google_sheets import create_mock_storage
 from src.processing.nlp_processor import NLPProcessor
 from src.processing.message_classifier import MessageClassifier
 from src.scheduling.calendly import CalendlyScheduler
@@ -43,56 +44,56 @@ def main() -> None:
         # Initialize components
         logger.info("Initializing components...")
         storage = GoogleSheetsStorage()
-        nlp_processor = NLPProcessor()
-        message_classifier = MessageClassifier(nlp_processor)
-        calendly_scheduler = CalendlyScheduler()
-        google_calendar = GoogleCalendarScheduler()
+    #     nlp_processor = NLPProcessor()
+    #     message_classifier = MessageClassifier(nlp_processor)
+    #     calendly_scheduler = CalendlyScheduler()
+    #     google_calendar = GoogleCalendarScheduler()
         
-        # Initialize connectors
-        email_connector = EmailConnector()
-        linkedin_connector = LinkedInConnector()
-        handshake_connector = HandshakeConnector()
-        slack_connector = SlackConnector()
-        discord_connector = DiscordConnector()
+    #     # Initialize connectors
+    #     email_connector = EmailConnector()
+    #     linkedin_connector = LinkedInConnector()
+    #     handshake_connector = HandshakeConnector()
+    #     slack_connector = SlackConnector()
+    #     discord_connector = DiscordConnector()
         
-        # Fetch messages from all sources
-        logger.info("Fetching messages from all sources...")
-        email_messages = email_connector.fetch_messages()
-        linkedin_messages = linkedin_connector.fetch_messages()
-        handshake_messages = handshake_connector.fetch_messages()
-        slack_messages = slack_connector.fetch_messages()
-        discord_messages = discord_connector.fetch_messages()
+    #     # Fetch messages from all sources
+    #     logger.info("Fetching messages from all sources...")
+    #     email_messages = email_connector.fetch_messages()
+    #     linkedin_messages = linkedin_connector.fetch_messages()
+    #     handshake_messages = handshake_connector.fetch_messages()
+    #     slack_messages = slack_connector.fetch_messages()
+    #     discord_messages = discord_connector.fetch_messages()
         
-        # Combine all messages
-        all_messages = (
-            email_messages + 
-            linkedin_messages + 
-            handshake_messages + 
-            slack_messages + 
-            discord_messages
-        )
+    #     # Combine all messages
+    #     all_messages = (
+    #         email_messages + 
+    #         linkedin_messages + 
+    #         handshake_messages + 
+    #         slack_messages + 
+    #         discord_messages
+    #     )
         
-        # Process messages
-        logger.info(f"Processing {len(all_messages)} messages...")
-        for message in all_messages:
-            # Classify message intent
-            intent = message_classifier.classify(message['content'])
-            message['intent'] = intent
+    #     # Process messages
+    #     logger.info(f"Processing {len(all_messages)} messages...")
+    #     for message in all_messages:
+    #         # Classify message intent
+    #         intent = message_classifier.classify(message['content'])
+    #         message['intent'] = intent
             
-            # Store in Google Sheets
-            storage.store_message(message)
+    #         # Store in Google Sheets
+    #         storage.store_message(message)
             
-            # If interview request, schedule it
-            if intent == 'interview_request':
-                logger.info(f"Scheduling interview for message: {message['id']}")
-                calendly_link = calendly_scheduler.get_scheduling_link()
-                email_connector.send_reply(
-                    message['sender_email'],
-                    "Interview Scheduling",
-                    f"Thank you for your interest! Please schedule a time using this link: {calendly_link}"
-                )
+    #         # If interview request, schedule it
+    #         if intent == 'interview_request':
+    #             logger.info(f"Scheduling interview for message: {message['id']}")
+    #             calendly_link = calendly_scheduler.get_scheduling_link()
+    #             email_connector.send_reply(
+    #                 message['sender_email'],
+    #                 "Interview Scheduling",
+    #                 f"Thank you for your interest! Please schedule a time using this link: {calendly_link}"
+    #             )
         
-        logger.info("Communication processing completed successfully")
+    #     logger.info("Communication processing completed successfully")
         
     except Exception as e:
         logger.error(f"Error in main processing: {str(e)}", exc_info=True)
