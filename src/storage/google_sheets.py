@@ -7,6 +7,7 @@ from typing import Dict, List, Any, Optional
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
+from unittest.mock import MagicMock
 
 logger = logging.getLogger(__name__)
 
@@ -288,4 +289,5 @@ class GoogleSheetsStorage:
             
         except Exception as e:
             logger.error(f"Error storing interview: {str(e)}", exc_info=True)
-            return False 
+            return False
+
