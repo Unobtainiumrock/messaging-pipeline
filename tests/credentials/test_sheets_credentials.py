@@ -1,6 +1,6 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 """
-Test script to verify Google Sheets access is configured correctly.
+Test script to verify Google Sheets credentials are configured correctly.
 """
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,7 @@ from datetime import datetime
 # Load environment variables
 load_dotenv()
 
-def test_google_sheets_access():
+def test_sheets_credentials():
     """Test Google Sheets access with current configuration."""
     print("Testing Google Sheets connectivity...")
     
@@ -74,6 +74,7 @@ def test_google_sheets_access():
             print("! No 'Messages' worksheet found. You may need to initialize worksheets.")
         
         print("\n✅ SUCCESS: Google Sheets integration is working correctly!")
+        return True
         
     except Exception as e:
         print(f"\n❌ ERROR: {str(e)}")
@@ -83,8 +84,6 @@ def test_google_sheets_access():
         print("3. Check that you've enabled the Google Sheets and Google Drive APIs")
         print("4. Ensure your Sheet ID is correct")
         return False
-        
-    return True
 
 if __name__ == "__main__":
-    test_google_sheets_access()
+    test_sheets_credentials() 

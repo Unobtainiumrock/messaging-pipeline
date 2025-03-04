@@ -13,7 +13,7 @@ def import_test_module(name):
     """Import a test module by name."""
     module_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), 
-        f"test_{name}_credentials.py"
+        f"credentials/test_{name}_credentials.py"  # Updated path
     )
     
     if not os.path.exists(module_path):
@@ -33,7 +33,7 @@ def main():
     
     # List of integrations to test
     integrations = [
-        "google_sheets", 
+        "sheets", 
         "email", 
         "phantombuster",
         "calendly", 
@@ -48,31 +48,20 @@ def main():
         print(f"TESTING {integration.upper()} CREDENTIALS")
         print("=" * 60)
         
-        # Import the corresponding test module
-        if integration == "google_sheets":
-            # Use existing script
-            spec = importlib.util.spec_from_file_location(
-                "test_sheets_access", 
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "test_sheets_access.py")
-            )
-            test_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(test_module)
-            test_function = test_module.test_google_sheets_access
-        else:
-            # Import dynamic test module
-            test_module = import_test_module(integration)
-            if test_module is None:
-                results[integration] = "SKIPPED (no test found)"
-                continue
-            
-            # Get the test function
-            test_function_name = f"test_{integration}_credentials"
-            test_function = getattr(test_module, test_function_name, None)
-            
-            if test_function is None:
-                print(f"⚠️ Warning: Test function {test_function_name} not found in module")
-                results[integration] = "SKIPPED (no test function found)"
-                continue
+        # Import dynamic test module
+        test_module = import_test_module(integration)
+        if test_module is None:
+            results[integration] = "SKIPPED (no test found)"
+            continue
+        
+        # Get the test function
+        test_function_name = f"test_{integration}_credentials"
+        test_function = getattr(test_module, test_function_name, None)
+        
+        if test_function is None:
+            print(f"⚠️ Warning: Test function {test_function_name} not found in module")
+            results[integration] = "SKIPPED (no test function found)"
+            continue
         
         # Run the test
         try:
