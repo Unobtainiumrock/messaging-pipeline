@@ -47,6 +47,54 @@ This ensures that VS Code correctly resolves all imports, including the `crontab
 - Install Python dependencies: `pip install -r requirements.txt`
 - Install Node.js dependencies: `npm install` 
 
+## Testing
+
+The project includes a comprehensive test suite organized into credential verification and component tests.
+
+### Running Tests
+
+```bash
+# Run all tests (credentials and components)
+python tests/run_all_tests.py
+
+# Run only credential verification tests
+python tests/run_credential_tests.py
+
+# Run only component tests
+python tests/run_component_tests.py
+
+# Run an individual credential test
+python tests/credentials/test_sheets_credentials.py
+```
+
+### Test Organization
+
+- `tests/credentials/` - Tests for API credentials and service connections
+- `tests/component/` - Functional tests for code components
+
+### Adding New Tests
+
+#### Credential Tests
+
+1. Create a file in `tests/credentials/` named `test_<service>_credentials.py`
+2. Implement a function named `test_<service>_credentials()` that returns `True` or `False`
+3. Add the service to the list in `tests/run_credential_tests.py` if needed
+
+#### Component Tests
+
+1. Add test classes or functions to files in `tests/component/`
+2. Follow pytest naming conventions for automatic discovery
+
+## Credentials Setup
+
+The application requires various API credentials:
+
+1. **Google Sheets**: Create a service account and place JSON credentials in `config/credentials/google_credentials.json`
+2. **Gmail/Email**: Create an App Password if using 2FA (see [Gmail documentation](https://support.google.com/accounts/answer/185833))
+3. **Slack/Discord**: Create bot tokens with appropriate permissions
+4. **Calendly/PhantomBuster**: Generate API keys from respective platforms
+
+Run credential tests after setup to verify your configuration.
 
 ## Project Structure
 
