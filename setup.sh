@@ -110,6 +110,18 @@ fi
 echo -e "${YELLOW}Building Docker container...${NC}"
 docker-compose -f docker-compose.yml build
 
+# Install Python dependencies using UV for local development
+echo -e "${YELLOW}Setting up local Python environment with UV...${NC}"
+if ! command -v uv &> /dev/null; then
+    echo -e "${YELLOW}UV not found. Installing...${NC}"
+    pip install uv
+fi
+echo -e "${GREEN}Creating virtual environment with UV...${NC}"
+uv venv
+echo -e "${GREEN}Installing dependencies...${NC}"
+source .venv/bin/activate || source .venv/Scripts/activate
+uv pip install --editable ".[dev]"
+
 # Install pre-commit hooks locally if pre-commit is available
 echo -e "${YELLOW}Checking for pre-commit...${NC}"
 if command -v pre-commit &> /dev/null; then

@@ -1,8 +1,13 @@
-.PHONY: setup test lint update-readme clean docker-build docker-run docker-test docker-shell docker-run-dev docker-run-prod docker-build-dev docker-build-prod docker-logs docker-stop ec2-deploy
+.PHONY: setup test lint update-readme clean docker-build docker-run docker-test docker-shell docker-run-dev docker-run-prod docker-build-dev docker-build-prod docker-logs docker-stop ec2-deploy uv-add uv-add-dev
 
 # Setup development environment
 setup:
-	pip install -r requirements.txt
+	./setup.sh
+
+# Setup Python environment only (without Docker)
+setup-python:
+	uv venv
+	source .venv/bin/activate && uv pip install --editable ".[dev]"
 	pre-commit install
 
 # Run tests
@@ -31,6 +36,14 @@ clean:
 	find . -type d -name "htmlcov" -exec rm -rf {} +
 	find . -type d -name ".tox" -exec rm -rf {} +
 	find . -type d -name ".hypothesis" -exec rm -rf {} +
+	rm -rf .venv .uv
+
+# UV dependency management
+uv-add:
+	source .venv/bin/activate && uv pip add $(package) -e "."
+
+uv-add-dev:
+	source .venv/bin/activate && uv pip add $(package) -e ".[dev]"
 
 # Docker commands
 docker-build:
@@ -70,11 +83,14 @@ ec2-deploy:
 
 help:
 	@echo "Available commands:"
-	@echo "  setup          - Set up development environment"
+	@echo "  setup          - Set up complete development environment (Docker + Python)"
+	@echo "  setup-python   - Set up Python environment only with UV"
 	@echo "  test           - Run tests"
 	@echo "  lint           - Run linting tools"
 	@echo "  update-readme  - Update README with project structure"
 	@echo "  clean          - Clean temporary files"
+	@echo "  uv-add         - Add a package with UV (usage: make uv-add package=packagename)"
+	@echo "  uv-add-dev     - Add a dev package with UV (usage: make uv-add-dev package=packagename)"
 	@echo "  docker-build   - Build Docker container"
 	@echo "  docker-run     - Run application in Docker"
 	@echo "  docker-test    - Run tests in Docker"

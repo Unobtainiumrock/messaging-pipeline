@@ -15,32 +15,30 @@ An automated system to centralize communications from multiple platforms (Email,
 
 ## Setup
 
-### Docker-based Setup (Recommended)
-
 1. Clone this repository
 2. Run the setup script: `./setup.sh`
    - This will install Docker and Docker Compose if needed
    - Set up necessary directories and configuration files
    - Build the Docker images
+   - Create a Python virtual environment with UV
 3. Configure credentials in `config/credentials/` following the README there
 4. Set environment variables in `.env` (copy from `.env.example`)
 5. Log out and log back in if prompted (required for Docker permissions)
 6. Start the application in development mode: `make docker-run-dev`
 
-### Alternative: Manual Setup
+## Project Automation with Makefile
 
-If you prefer not to use Docker:
+This project uses a Makefile to standardize workflows and automate common tasks:
 
-1. Clone this repository
-2. Install Python dependencies: `pip install -r requirements.txt`
-3. Install Node.js dependencies: `npm install`
-4. Configure credentials in `config/credentials/`
-5. Set environment variables in `.env` (copy from `.env.example`)
-6. Run the main application: `python src/main.py`
+- **Environment Management**: Setup development environment with proper dependencies
+- **Application Lifecycle**: Start, stop, and monitor services in different environments
+- **Testing & Quality**: Run tests, linting, and code quality checks
+- **Dependency Management**: Add and manage Python dependencies with UV
+- **Deployment**: Automate deployment to production environments
 
-## Docker Commands
+Run `make help` to see all available commands with descriptions.
 
-The project includes a Makefile with useful commands for Docker-based development:
+## Docker Operations
 
 ```bash
 # Start development environment
@@ -57,12 +55,18 @@ make docker-logs
 
 # Rebuild containers (after changing Dockerfile)
 make docker-build
+```
 
-# Restart containers
-make docker-restart
+## Dependency Management
 
-# List all available commands
-make help
+This project uses UV for Python dependency management. Dependencies are defined in `pyproject.toml`.
+
+```bash
+# Add a regular dependency
+make uv-add package=package-name
+
+# Add a development dependency
+make uv-add-dev package=package-name
 ```
 
 ## VS Code Configuration
@@ -80,10 +84,6 @@ This ensures that VS Code correctly resolves all imports, including the `crontab
 ## Requirements
 
 - Docker and Docker Compose (installed automatically by setup.sh)
-- OR if not using Docker:
-  - Python 3.9+
-  - Node.js 14+ (for Puppeteer scripts)
-  - Puppeteer 24.3.1+ (earlier versions have security vulnerabilities)
 - Google Cloud Platform account for API access
 - PhantomBuster account for LinkedIn automation
 - Calendly account
@@ -96,18 +96,9 @@ The project includes a comprehensive test suite organized into credential verifi
 
 ```bash
 # Run all tests (credentials and components)
-python tests/run_all_tests.py
+make test
 
-# Run only credential verification tests
-python tests/run_credential_tests.py
-
-# Run only component tests
-python tests/run_component_tests.py
-
-# Run an individual credential test
-python tests/credentials/test_sheets_credentials.py
-
-# When using Docker
+# Run tests in Docker environment
 make docker-test
 ```
 
@@ -145,72 +136,72 @@ Run credential tests after setup to verify your configuration.
 ```bash
 comm-centralizer/
 ├── scripts/
-│   ├── deploy_to_ec2.sh                # Script to deploy project to EC2 instance
-│   ├── directory_printer.py            # Script to print directory structure
-│   ├── ec2_security_setup.sh           # Script to set up security on EC2 instance
-│   ├── schedule_job.py                 # Script to schedule jobs
-│   ├── update_readme_structure.py      # Script to update README structure
+│   ├── deploy_to_ec2.sh                    # Script to deploy project to EC2 instance
+│   ├── directory_printer.py                 # Script to print directory structure
+│   ├── ec2_security_setup.sh                # Script for setting up security on EC2 instance
+│   ├── schedule_job.py                      # Script to schedule a job
+│   ├── update_readme_structure.py           # Script to update README structure
 ├── config/
-│   ├── config.py                       # Configuration file for project
+│   ├── config.py                           # Configuration file
 │   ├── credentials/
-│   │   ├── .gitkeep                    # Placeholder file for credentials directory
-│   │   ├── README.md                   # Information about credentials directory
-│   │   ├── google_credentials.json      # Google API credentials file
+│   │   ├── .gitkeep                         # Placeholder file for credentials directory
+│   │   ├── README.md                        # Information about credentials
+│   │   ├── google_credentials.json          # Google API credentials
 ├── src/
-│   ├── main.py                         # Main entry point of the project
+│   ├── main.py                              # Main entry point of the project
 │   ├── automation/
-│   │   ├── selenium_utils.py           # Utility functions for Selenium automation
+│   │   ├── selenium_utils.py                # Utility functions for Selenium automation
 │   │   ├── puppeteer_scripts/
-│   │   │   ├── handshake.js            # Puppeteer script for handshake process
-│   │   │   ├── utils.js                # Utility functions for Puppeteer scripts
+│   │   │   ├── handshake.js                 # Puppeteer script for handshake
+│   │   │   ├── utils.js                     # Utility functions for Puppeteer scripts
 │   ├── config/
-│   │   ├── environment.py              # Environment configuration file
+│   │   ├── environment.py                   # Environment configuration
 │   ├── connectors/
-│   │   ├── discord_connector.py        # Connector for Discord platform
-│   │   ├── email_connector.py          # Connector for email platforms
-│   │   ├── handshake_connector.py      # Connector for handshake process
-│   │   ├── linkedin_connector.py       # Connector for LinkedIn platform
-│   │   ├── slack_connector.py          # Connector for Slack platform
+│   │   ├── discord_connector.py             # Connector for Discord
+│   │   ├── email_connector.py               # Connector for email services
+│   │   ├── handshake_connector.py           # Connector for handshake
+│   │   ├── linkedin_connector.py            # Connector for LinkedIn
+│   │   ├── slack_connector.py               # Connector for Slack
 │   ├── processing/
-│   │   ├── message_classifier.py       # Message classification module
-│   │   ├── nlp_processor.py            # Natural Language Processing module
+│   │   ├── message_classifier.py            # Message classifier for processing
+│   │   ├── nlp_processor.py                 # NLP processor for text analysis
 │   ├── scheduling/
-│   │   ├── calendly.py                 # Calendly scheduling integration
-│   │   ├── google_calendar.py          # Google Calendar scheduling integration
+│   │   ├── calendly.py                      # Integration with Calendly for scheduling
+│   │   ├── google_calendar.py               # Integration with Google Calendar for scheduling
 │   ├── storage/
-│   │   ├── google_sheets.py            # Google Sheets storage integration
+│   │   ├── google_sheets.py                 # Integration with Google Sheets for storage
 ├── tests/
-│   ├── run_all_tests.py                # Script to run all tests
-│   ├── run_component_tests.py          # Script to run component tests
-│   ├── run_credential_tests.py         # Script to run credential tests
+│   ├── run_all_tests.py                     # Script to run all tests
+│   ├── run_component_tests.py               # Script to run component tests
+│   ├── run_credential_tests.py              # Script to run credential tests
 │   ├── component/
-│   │   ├── test_automation.py          # Automated tests for automation module
-│   │   ├── test_connectors.py          # Automated tests for connectors module
-│   │   ├── test_processing.py          # Automated tests for processing module
-│   │   ├── test_scheduling.py          # Automated tests for scheduling module
-│   │   ├── test_storage.py             # Automated tests for storage module
+│   │   ├── test_automation.py               # Test cases for automation
+│   │   ├── test_connectors.py               # Test cases for connectors
+│   │   ├── test_processing.py               # Test cases for processing
+│   │   ├── test_scheduling.py               # Test cases for scheduling
+│   │   ├── test_storage.py                  # Test cases for storage
 │   ├── credentials/
-│   │   ├── README.md                   # Information about credentials tests
-│   │   ├── test_calendly_credentials.py # Test script for Calendly credentials
-│   │   ├── test_discord_credentials.py  # Test script for Discord credentials
-│   │   ├── test_email_credentials.py    # Test script for email credentials
-│   │   ├── test_openai_credentials.py   # Test script for OpenAI credentials
-│   │   ├── test_phantombuster_credentials.py # Test script for Phantombuster credentials
-│   │   ├── test_sheets_credentials.py   # Test script for Google Sheets credentials
-│   │   ├── test_slack_credentials.py    # Test script for Slack credentials
-├── .dockerignore                       # Docker ignore file
-├── .pre-commit-config.yaml             # Pre-commit configuration file
-├── Dockerfile                          # Dockerfile for project
-├── Dockerfile.improvements             # Improved Dockerfile for project
-├── Makefile                            # Makefile for project
-├── README.md                           # Project documentation
-├── TODOPROMPTS.txt                     # TODO prompts for project
-├── comm_centralizer.log                # Log file for project
-├── docker-compose.dev.yml              # Docker Compose file for development environment
-├── docker-compose.prod.yml             # Docker Compose file for production environment
-├── docker-compose.yml                  # Docker Compose file
-├── package.json                        # Node.js package file
-├── requirements.txt                    # Python requirements file
-├── scratch.sh                          # Script for testing purposes
-└── setup.sh                            # Setup script for project
+│   │   ├── README.md                        # Information about test credentials
+│   │   ├── test_calendly_credentials.py     # Test cases for Calendly credentials
+│   │   ├── test_discord_credentials.py      # Test cases for Discord credentials
+│   │   ├── test_email_credentials.py        # Test cases for email credentials
+│   │   ├── test_openai_credentials.py       # Test cases for OpenAI credentials
+│   │   ├── test_phantombuster_credentials.py # Test cases for Phantombuster credentials
+│   │   ├── test_sheets_credentials.py       # Test cases for Google Sheets credentials
+│   │   ├── test_slack_credentials.py        # Test cases for Slack credentials
+├── .dockerignore                            # Docker ignore file
+├── .pre-commit-config.yaml                  # Configuration for pre-commit hooks
+├── Dockerfile                               # Dockerfile for building the project
+├── Makefile                                 # Makefile for project tasks
+├── README.md                                # Project documentation
+├── TODOPROMPTS.txt                          # To-do prompts for project
+├── comm_centralizer.log                     # Log file for comm-centralizer
+├── docker-compose.dev.yml                   # Docker Compose file for development environment
+├── docker-compose.prod.yml                  # Docker Compose file for production environment
+├── docker-compose.yml                       # Docker Compose file
+├── package.json                             # Node.js package file
+├── pyproject.toml                           # Configuration file for Python projects
+├── requirements.txt                         # Python dependencies
+├── scratch.sh                               # Script for testing purposes
+└── setup.sh                                 # Setup script
 ```

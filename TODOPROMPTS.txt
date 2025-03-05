@@ -26,3 +26,10 @@
     Better dependency management with clear versioning
     Automated testing and quality checks
     Simpler onboarding for new contributors. Currently, we only have development and production environments. Where/how do we add a set stage too?
+11. ARG ENVIRONMENT=development
+RUN if [ "$ENVIRONMENT" = "production" ]; then \
+        uv pip install --system . ; \
+    else \
+        uv pip install --system ".[dev]" ; \
+    fi
+    I want to know how this Dockerfile will need to be changed if we put this into deployment, because it appears to always set the environment variable to development.
