@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ENVIRONMENT=development
+    volumes:
+      - .:/app
+    env_file: .env
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+    ports:
+      - "8000:8000"  # For web interface
+    command: python src/main.py 

@@ -38,7 +38,8 @@ def main():
         "phantombuster",
         "calendly", 
         "slack", 
-        "discord"
+        "discord",
+        "openai"
     ]
     
     results = {}

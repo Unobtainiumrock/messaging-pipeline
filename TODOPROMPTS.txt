@@ -13,3 +13,16 @@
     What should the __init__ method of the class be?
     What should the __str__ method of the class be?
     What should the __repr__ method of the class be?
+3. Please add in pre-commit hooks and open ai to requirements.txt
+4. `chmod +x scripts/deploy_to_ec2.sh` needs to be documented properly.
+5. `chmod +x scripts/ec2_security_setup.sh` ditto #4
+6. Tell me more about how this github actions workflow is configured for our CI/CD pipeline.
+7. Where are black and flake8 being run from or used in this repo? What do they do and should we inrporate them?
+8. You mentioned that poetry inside of docker setup is better for Python dependency management. Why?
+9. Can we reincorporate poetry into this project in the Docker setup?
+10. I like the following:
+    This modernized approach will give you:
+    Consistent environments across development, testing, and production
+    Better dependency management with clear versioning
+    Automated testing and quality checks
+    Simpler onboarding for new contributors. Currently, we only have development and production environments. Where/how do we add a set stage too?
