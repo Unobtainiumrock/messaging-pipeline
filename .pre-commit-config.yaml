@@ -1,0 +1,10 @@
+repos:
+- repo: local
+  hooks:
+  - id: update-readme-structure
+    name: Update README Structure
+    entry: bash -c 'python scripts/update_readme_structure.py && git add README.md'
+    language: python
+    pass_filenames: false
+    always_run: true
+    additional_dependencies: [python-dotenv, openai>=1.0.0]
