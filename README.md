@@ -307,3 +307,171 @@ comm-centralizer/
 ├── setup.sh                        # Setup script
 └── tsconfig.json                   # TypeScript configuration
 ```
+
+## Validating the CI/CD Pipeline
+
+To ensure your CI/CD pipeline is correctly configured and working properly, follow these validation steps:
+
+### 1. Local Environment Setup
+
+```bash
+# Verify your scripts have proper permissions
+chmod +x scripts/deploy_to_ec2.sh
+chmod +x scripts/setup_env_credentials.sh
+chmod +x scripts/setup_monitoring.sh
+
+# Test your CI commands locally
+make ci-test
+```
+
+### 2. GitHub Repository Configuration
+
+1. **Set Up Required Secrets**:
+
+   - Go to your GitHub repository → Settings → Secrets and variables → Actions
+   - Add all required secrets:
+     - `AWS_ACCESS_KEY_ID`
+     - `AWS_SECRET_ACCESS_KEY`
+     - `AWS_REGION`
+     - `STAGING_EC2_IP`
+     - `PRODUCTION_EC2_IP`
+     - `EC2_SSH_PRIVATE_KEY`
+
+2. **Configure Branch Protection**:
+   - Go to Settings → Branches → Add rule
+   - Protect your `main` and `develop` branches
+   - Require status checks to pass before merging
+
+### 3. Test the Pipeline
+
+1. Create a test branch:
+
+   ```bash
+   git checkout -b test-ci-pipeline
+   ```
+
+2. Make a small change (e.g., update a comment)
+
+3. Push the branch and create a PR to `develop`:
+
+   ```bash
+   git push origin test-ci-pipeline
+   ```
+
+4. Verify each stage in GitHub Actions:
+   - **Test**: All tests, linting, and type checks pass
+   - **Build**: Docker image builds and pushes to GitHub Container Registry
+   - **Deploy-Staging**: (After merging to `develop`) Application deploys to staging
+   - **Deploy-Production**: (After merging to `main` or manual trigger) Application deploys to production
+
+### 4. Verify Deployment
+
+```bash
+# Check staging deployment
+ssh -i your-key.pem ec2-user@your-staging-ip 'cd /home/ec2-user/comm-centralizer && docker ps'
+
+# Check application logs
+ssh -i your-key.pem ec2-user@your-staging-ip 'cd /home/ec2-user/comm-centralizer && make docker-logs'
+
+# Verify monitoring setup
+ssh -i your-key.pem ec2-user@your-staging-ip 'sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a status'
+```
+
+### 5. Test Rollback Procedure
+
+If you need to roll back to a previous version:
+
+```bash
+# Deploy previous version
+make ci-deploy-production DOCKER_TAG=previous-version-tag
+```
+
+## Infrastructure as Code with Terraform
+
+This project uses Terraform to manage cloud infrastructure in a consistent, version-controlled way.
+
+### What is Terraform?
+
+Terraform is an Infrastructure as Code (IaC) tool that allows you to define and provision infrastructure using declarative configuration files. Instead of manually creating servers through the AWS console, you define your infrastructure in code.
+
+### Benefits for This Project
+
+- **Consistency**: Identical environments for staging and production
+- **Version Control**: Infrastructure changes are tracked in Git
+- **Automation**: Reduces human error in infrastructure setup
+- **Documentation**: Self-documenting infrastructure
+- **Disaster Recovery**: Quickly recreate infrastructure if needed
+
+### Using Terraform
+
+1. **Create variables file** (`terraform/variables.tf`):
+
+```hcl
+variable "aws_region" {
+  description = "AWS region to deploy to"
+  default     = "us-east-1"
+}
+
+variable "environment" {
+  description = "Environment (staging or production)"
+  default     = "staging"
+}
+
+variable "ami_id" {
+  description = "Amazon Machine Image ID"
+  default     = "ami-0c55b159cbfafe1f0"  # Amazon Linux 2 AMI
+}
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  default     = "t2.micro"
+}
+
+variable "key_pair_name" {
+  description = "Name of the key pair for SSH access"
+}
+```
+
+2. **Initialize Terraform**:
+
+```bash
+cd terraform
+terraform init
+```
+
+3. **Create infrastructure plan**:
+
+```bash
+terraform plan -var="key_pair_name=your-key-pair-name"
+```
+
+4. **Apply the infrastructure**:
+
+```bash
+terraform apply -var="key_pair_name=your-key-pair-name"
+```
+
+5. **Destroy infrastructure when no longer needed**:
+
+```bash
+terraform destroy -var="key_pair_name=your-key-pair-name"
+```
+
+### Terraform Makefile Commands
+
+```bash
+# Initialize Terraform
+make terraform-init
+
+# Plan infrastructure changes
+make terraform-plan ENVIRONMENT=staging KEY_PAIR_NAME=your-key-pair
+
+# Apply infrastructure changes
+make terraform-apply ENVIRONMENT=production KEY_PAIR_NAME=your-key-pair
+```
+
+The Terraform configuration in this project creates:
+
+- EC2 instances for application hosting
+- Security groups with proper port configurations
+- Initial server setup with Docker and other requirements
