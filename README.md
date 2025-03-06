@@ -13,18 +13,40 @@ An automated system to centralize communications from multiple platforms (Email,
 - Uses spaCy with LLM integration to identify interview requests
 - Automatically schedules interviews via Calendly and Google Calendar
 
+## Requirements
+
+- Docker and Docker Compose (installed automatically by `setup.sh`)
+- Google Cloud Platform account for API access
+- PhantomBuster account for LinkedIn automation
+- Calendly account
+
 ## Setup
 
-1. Clone this repository
-2. Run the setup script: `./setup.sh`
-   - This will install Docker and Docker Compose if needed
-   - Set up necessary directories and configuration files
-   - Build the Docker images
-   - Create a Python virtual environment with UV
-3. Configure credentials in `config/credentials/` following the README there
-4. Set environment variables in `.env` (copy from `.env.example`)
-5. Log out and log back in if prompted (required for Docker permissions)
-6. Start the application in development mode: `make docker-run-dev`
+1. **Clone this repository**
+2. **Run the setup script: `./setup.sh`**
+   - Installs Docker and Docker Compose if needed
+   - Sets up necessary directories and configuration files
+   - Builds the Docker images
+   - Creates a Python virtual environment with UV
+3. **Configure credentials** in `config/credentials/` following the README there
+4. **Set environment variables** in `.env` (copy from `.env.example`)
+5. **Log out and log back in** if prompted (required for Docker permissions)
+6. **Start the application in development mode**:
+
+   ```bash
+   make docker-run-dev
+   ```
+
+## Credentials Setup
+
+The application requires various API credentials:
+
+1. **Google Sheets**: Create a service account and place JSON credentials in `config/credentials/google_credentials.json`
+2. **Gmail/Email**: Create an App Password if using 2FA (see [Gmail documentation](https://support.google.com/accounts/answer/185833))
+3. **Slack/Discord**: Create bot tokens with appropriate permissions
+4. **Calendly/PhantomBuster**: Generate API keys from respective platforms
+
+Run credential tests after setup to verify your configuration.
 
 ## Project Automation with Makefile
 
@@ -69,25 +91,6 @@ make uv-add package=package-name
 make uv-add-dev package=package-name
 ```
 
-## VS Code Configuration
-
-If you're using VS Code, set up the correct Python interpreter to avoid import resolution issues:
-
-1. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
-2. Type "Python: Select Interpreter"
-3. Select the "**Pyenv**" option (e.g., `Python 3.12.3 64-bit ('3.12.3') ~/.pyenv/versions/3.12.3/bin/python`)
-4. **Important**: Make sure to select the "Pyenv" option specifically, not the similar "Recommended" or "Workspace" options
-5. Restart VS Code or reload the window
-
-This ensures that VS Code correctly resolves all imports, including the `crontab` module used in scheduling scripts.
-
-## Requirements
-
-- Docker and Docker Compose (installed automatically by setup.sh)
-- Google Cloud Platform account for API access
-- PhantomBuster account for LinkedIn automation
-- Calendly account
-
 ## Testing
 
 The project includes a comprehensive test suite organized into credential verification and component tests.
@@ -109,72 +112,96 @@ make docker-test
 
 ### Adding New Tests
 
-#### Credential Tests
+**Credential Tests**
 
 1. Create a file in `tests/credentials/` named `test_<service>_credentials.py`
 2. Implement a function named `test_<service>_credentials()` that returns `True` or `False`
 3. Add the service to the list in `tests/run_credential_tests.py` if needed
 
-#### Component Tests
+**Component Tests**
 
 1. Add test classes or functions to files in `tests/component/`
 2. Follow pytest naming conventions for automatic discovery
 
-## Credentials Setup
+## VS Code Configuration
 
-The application requires various API credentials:
+If you're using VS Code, set up the correct Python interpreter to avoid import resolution issues:
 
-1. **Google Sheets**: Create a service account and place JSON credentials in `config/credentials/google_credentials.json`
-2. **Gmail/Email**: Create an App Password if using 2FA (see [Gmail documentation](https://support.google.com/accounts/answer/185833))
-3. **Slack/Discord**: Create bot tokens with appropriate permissions
-4. **Calendly/PhantomBuster**: Generate API keys from respective platforms
+1. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+2. Type "Python: Select Interpreter"
+3. Select the "**Pyenv**" option (e.g., `Python 3.12.3 64-bit ('3.12.3') ~/.pyenv/versions/3.12.3/bin/python`)
+4. **Important**: Make sure to select the "Pyenv" option specifically, not the similar "Recommended" or "Workspace" options
+5. Restart VS Code or reload the window
 
-Run credential tests after setup to verify your configuration.
+This ensures that VS Code correctly resolves all imports, including the `crontab` module used in scheduling scripts.
+
+## Development Commands
+
+The following commands are available to help with development tasks:
+
+### JavaScript/TypeScript Commands
+
+- `npm run format`: Formats all JavaScript, TypeScript, and JSON files using Prettier
+- `npm run tsc`: Runs TypeScript compiler to check types without emitting output files
+- `npm run lint`: Runs ESLint to find and fix issues in JavaScript/TypeScript files
+
+### Python Commands
+
+- `black .`: Formats all Python files according to Black coding style
+- `flake8`: Checks Python files for style issues and potential bugs
+- `pre-commit run --all-files`: Runs all pre-commit hooks on all files
+
+### Development Workflow
+
+- `make dev`: Starts the development environment (if Makefile is configured)
+- `./setup.sh`: Sets up the project for first-time use
+- `git commit`: Automatically runs pre-commit hooks to format and lint code
 
 ## Project Structure
 
 ```bash
 comm-centralizer/
 ├── scripts/
-│   ├── .dir_structure_cache.json    # Cache file for directory structure
-│   ├── deploy_to_ec2.sh             # Script for deploying to EC2
-│   ├── directory_printer.py         # Script for printing directory structure
-│   ├── ec2_security_setup.sh        # Script for setting up EC2 security
-│   ├── schedule_job.py              # Script for scheduling jobs
-│   ├── update_readme_structure.py   # Script for updating README structure
+│   ├── .dir_structure_cache.json   # Cache file for directory structure
+│   ├── deploy_to_ec2.sh            # Script to deploy to EC2
+│   ├── directory_printer.py        # Script to print directory structure
+│   ├── ec2_security_setup.sh       # Script for EC2 security setup
+│   ├── schedule_job.py             # Script to schedule jobs
+│   ├── update_readme_structure.py  # Script to update README structure
 ├── config/
-│   ├── config.py                    # Configuration file
+│   ├── config.py                   # Configuration file
 │   ├── credentials/
 │   │   ├── .gitkeep                 # Placeholder file for git
-│   │   ├── README.md                # Credentials directory documentation
-│   │   ├── google_credentials.json   # Google API credentials
+│   │   ├── README.md                # Credentials README
+│   │   ├── google_credentials.json  # Google API credentials
 ├── src/
-│   ├── main.py                      # Main script
+│   ├── main.py                     # Main source code file
 │   ├── automation/
-│   │   ├── selenium_utils.py        # Utility functions for Selenium
+│   │   ├── selenium_utils.py        # Selenium utility functions
 │   │   ├── puppeteer_scripts/
 │   │   │   ├── handshake.js         # Puppeteer script for handshake
+│   │   │   ├── index.ts             # Puppeteer script index
 │   │   │   ├── utils.js             # Puppeteer utility functions
 │   ├── config/
 │   │   ├── environment.py           # Environment configuration
 │   ├── connectors/
-│   │   ├── discord_connector.py     # Discord API integration
-│   │   ├── email_connector.py       # Email API integration
-│   │   ├── handshake_connector.py   # Handshake API integration
-│   │   ├── linkedin_connector.py    # LinkedIn API integration
-│   │   ├── slack_connector.py       # Slack API integration
+│   │   ├── discord_connector.py     # Discord API connector
+│   │   ├── email_connector.py       # Email API connector
+│   │   ├── handshake_connector.py   # Handshake API connector
+│   │   ├── linkedin_connector.py    # LinkedIn API connector
+│   │   ├── slack_connector.py       # Slack API connector
 │   ├── processing/
-│   │   ├── message_classifier.py    # Message classification functions
-│   │   ├── nlp_processor.py         # Natural Language Processing functions
+│   │   ├── message_classifier.py    # Message classifier
+│   │   ├── nlp_processor.py         # NLP processor
 │   ├── scheduling/
-│   │   ├── calendly.py              # Calendly API integration
-│   │   ├── google_calendar.py       # Google Calendar API integration
+│   │   ├── calendly.py              # Calendly scheduling
+│   │   ├── google_calendar.py       # Google Calendar scheduling
 │   ├── storage/
-│   │   ├── google_sheets.py         # Google Sheets API integration
+│   │   ├── google_sheets.py         # Google Sheets storage
 ├── tests/
-│   ├── run_all_tests.py             # Script for running all tests
-│   ├── run_component_tests.py       # Script for running component tests
-│   ├── run_credential_tests.py      # Script for running credential tests
+│   ├── run_all_tests.py             # Script to run all tests
+│   ├── run_component_tests.py       # Script to run component tests
+│   ├── run_credential_tests.py      # Script to run credential tests
 │   ├── component/
 │   │   ├── test_automation.py       # Automation component tests
 │   │   ├── test_connectors.py       # Connectors component tests
@@ -182,26 +209,28 @@ comm-centralizer/
 │   │   ├── test_scheduling.py       # Scheduling component tests
 │   │   ├── test_storage.py          # Storage component tests
 │   ├── credentials/
-│   │   ├── README.md                # Credentials directory documentation
-│   │   ├── test_calendly_credentials.py   # Calendly credentials test
-│   │   ├── test_discord_credentials.py    # Discord credentials test
-│   │   ├── test_email_credentials.py      # Email credentials test
-│   │   ├── test_openai_credentials.py     # OpenAI credentials test
-│   │   ├── test_phantombuster_credentials.py   # Phantombuster credentials test
-│   │   ├── test_sheets_credentials.py     # Google Sheets credentials test
-│   │   ├── test_slack_credentials.py      # Slack credentials test
+│   │   ├── README.md                # Credentials README
+│   │   ├── test_calendly_credentials.py       # Calendly credentials tests
+│   │   ├── test_discord_credentials.py        # Discord credentials tests
+│   │   ├── test_email_credentials.py          # Email credentials tests
+│   │   ├── test_openai_credentials.py         # OpenAI credentials tests
+│   │   ├── test_phantombuster_credentials.py  # Phantombuster credentials tests
+│   │   ├── test_sheets_credentials.py         # Google Sheets credentials tests
+│   │   ├── test_slack_credentials.py          # Slack credentials tests
 ├── .dockerignore                    # Docker ignore file
-├── .pre-commit-config.yaml          # Pre-commit configuration file
-├── Dockerfile                       # Docker configuration file
-├── Makefile                         # Makefile for automation
+├── .eslintrc.js                     # ESLint configuration
+├── .pre-commit-config.yaml          # Pre-commit configuration
+├── Dockerfile                       # Docker configuration
+├── Makefile                         # Makefile for project
 ├── README.md                        # Project documentation
-├── TODOPROMPTS.txt                  # To-do prompts file
+├── TODOPROMPTS.txt                  # TODO prompts file
 ├── comm_centralizer.log             # Project log file
 ├── docker-compose.dev.yml           # Docker compose file for development
 ├── docker-compose.prod.yml          # Docker compose file for production
 ├── docker-compose.yml               # Docker compose file
 ├── package.json                     # Node.js package file
-├── pyproject.toml                   # Python project configuration file
+├── pyproject.toml                   # Python project configuration
 ├── requirements.txt                 # Python requirements file
-└── setup.sh                         # Setup script
+├── setup.sh                         # Setup script
+└── tsconfig.json                    # TypeScript configuration
 ```

@@ -33,3 +33,4 @@ RUN if [ "$ENVIRONMENT" = "production" ]; then \
         uv pip install --system ".[dev]" ; \
     fi
     I want to know how this Dockerfile will need to be changed if we put this into deployment, because it appears to always set the environment variable to development.
+12. Add other requirements for the project in the Requirements section of the README.md
