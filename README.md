@@ -229,9 +229,6 @@ The following commands are available to help with development tasks:
 ## Project Structure
 
 ```bash
-
-```
-
 comm-centralizer/
 |── scripts/
 | |── .dir_structure_cache.json # Cache file for directory structure
@@ -307,7 +304,7 @@ comm-centralizer/
 | | |── test_sheets_credentials.py # Google Sheets credentials test
 | | |── test_slack_credentials
 
-````
+```
 
 ## Validating the CI/CD Pipeline
 
@@ -323,7 +320,7 @@ chmod +x scripts/setup_monitoring.sh
 
 # Test your CI commands locally
 make ci-test
-````
+```
 
 ### 2. GitHub Repository Configuration
 
