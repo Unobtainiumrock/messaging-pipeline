@@ -10,9 +10,9 @@ setup-python:
 	source .venv/bin/activate && uv pip install --editable ".[dev]"
 	pre-commit install
 
-# Run tests
+# Run tests locally (ensuring src is properly installed)
 test:
-	pytest
+	. .venv/bin/activate && uv pip install -e . && pytest $(PYTEST_ARGS)
 
 # Lint code
 lint:
@@ -40,10 +40,10 @@ clean:
 
 # UV dependency management
 uv-add:
-	source .venv/bin/activate && uv pip add $(package) -e "."
+	. .venv/bin/activate && uv pip install $(package) -e "."
 
 uv-add-dev:
-	source .venv/bin/activate && uv pip add $(package) -e ".[dev]"
+	. .venv/bin/activate && uv pip install $(package) -e ".[dev]"
 
 # Docker commands
 docker-build:
@@ -52,8 +52,9 @@ docker-build:
 docker-run:
 	docker-compose up
 
+# Update docker-test to ensure the package is installed correctly
 docker-test:
-	docker-compose run --rm app pytest
+	docker-compose run --rm app sh -c "uv pip install -e . && pytest $(PYTEST_ARGS)"
 
 docker-shell:
 	docker-compose run --rm app /bin/bash
@@ -83,6 +84,7 @@ ec2-deploy:
 
 # CI/CD commands
 ci-test:
+	uv pip install -e ".[dev]"
 	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 	black --check .
 	pytest tests/component

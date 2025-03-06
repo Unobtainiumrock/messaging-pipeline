@@ -229,84 +229,85 @@ The following commands are available to help with development tasks:
 ## Project Structure
 
 ```bash
-comm-centralizer/
-├── scripts/
-│   ├── .dir_structure_cache.json   # Cache file storing directory structure
-│   ├── deploy_to_ec2.sh            # Script for deploying to EC2 instance
-│   ├── directory_printer.py        # Python script for printing directory structure
-│   ├── ec2_security_setup.sh       # Script for setting up security on EC2 instance
-│   ├── schedule_job.py             # Script for scheduling jobs
-│   ├── setup_env_credentials.sh    # Script for setting up environment credentials
-│   ├── setup_monitoring.sh         # Script for setting up monitoring
-│   └── update_readme_structure.py  # Python script for updating README structure
-├── terraform/
-│   └── main.tf                     # Terraform main configuration file
-├── config/
-│   ├── config.py                   # Configuration file
-│   └── credentials/
-│       ├── .gitkeep                # Git placeholder file
-│       ├── README.md               # Credentials README
-│       └── google_credentials.json  # Google API credentials
-├── src/
-│   ├── main.py                     # Main Python script
-│   ├── automation/
-│   │   └── puppeteer_scripts/
-│   │       ├── handshake.js        # Puppeteer script for handshake
-│   │       ├── index.ts            # Puppeteer script index
-│   │       └── utils.js            # Puppeteer utility functions
-│   │   └── selenium_scripts/
-│   │       └── utils.py            # Selenium utility functions
-│   ├── config/
-│   │   └── environment.py          # Environment configuration
-│   ├── connectors/
-│   │   ├── discord_connector.py    # Discord API connector
-│   │   ├── email_connector.py      # Email API connector
-│   │   ├── handshake_connector.py  # Handshake API connector
-│   │   ├── linkedin_connector.py   # LinkedIn API connector
-│   │   └── slack_connector.py      # Slack API connector
-│   ├── processing/
-│   │   ├── message_classifier.py   # Message classifier
-│   │   └── nlp_processor.py        # NLP processor
-│   ├── scheduling/
-│   │   ├── calendly.py             # Calendly scheduling integration
-│   │   └── google_calendar.py      # Google Calendar scheduling integration
-│   ├── storage/
-│   │   └── google_sheets.py        # Google Sheets storage integration
-├── tests/
-│   ├── run_all_tests.py            # Script for running all tests
-│   ├── run_component_tests.py      # Script for running component tests
-│   ├── run_credential_tests.py     # Script for running credential tests
-│   ├── component/
-│   │   ├── test_automation.py      # Automation component tests
-│   │   ├── test_connectors.py      # Connectors component tests
-│   │   ├── test_processing.py      # Processing component tests
-│   │   ├── test_scheduling.py      # Scheduling component tests
-│   │   └── test_storage.py         # Storage component tests
-│   └── credentials/
-│       ├── README.md               # Credentials README
-│       ├── test_calendly_credentials.py  # Calendly credentials test
-│       ├── test_discord_credentials.py   # Discord credentials test
-│       ├── test_email_credentials.py     # Email credentials test
-│       ├── test_openai_credentials.py    # OpenAI credentials test
-│       ├── test_phantombuster_credentials.py  # Phantombuster credentials test
-│       ├── test_sheets_credentials.py     # Google Sheets credentials test
-│       └── test_slack_credentials.py      # Slack credentials test
-├── .eslintrc.js                    # ESLint configuration
-├── .pre-commit-config.yaml         # Pre-commit configuration
-├── Dockerfile                      # Dockerfile for development
-├── Dockerfile.prod                 # Dockerfile for production
-├── Makefile                        # Makefile for project
-├── README.md                       # Project documentation
-├── TODOPROMPTS.txt                 # TODO prompts file
-├── comm_centralizer.log            # Project log file
-├── docker-compose.dev.yml          # Docker Compose file for development
-├── docker-compose.prod.yml         # Docker Compose file for production
-├── docker-compose.yml              # Docker Compose file
-├── package.json                    # Node.js package file
-├── pyproject.toml                  # Python project configuration
-├── setup.sh                        # Setup script
-└── tsconfig.json                   # TypeScript configuration
+
 ```
+
+comm-centralizer/
+|── scripts/
+| |── .dir_structure_cache.json # Cache file for directory structure
+| |── deploy_to_ec2.sh # Script to deploy to EC2 instance
+| |── directory_printer.py # Python script to print directory structure
+| |── ec2_security_setup.sh # Script to set up security on EC2 instance
+| |── schedule_job.py # Script to schedule jobs
+| |── setup_env_credentials.sh # Script to set up environment credentials
+| |── setup_monitoring.sh # Script to set up monitoring
+| |── update_readme_structure.py # Python script to update README structure
+|── .ruff_cache/
+| |── .gitignore # Git ignore file for cache directory
+| |── CACHEDIR.TAG # Cache directory tag
+| |── content/ # Cache content directory
+|── terraform/
+| |── main.tf # Main Terraform configuration file
+|── config/
+| |── config.py # Configuration file
+| |── credentials/
+| | |── .gitkeep # Git keep file for credentials directory
+| | |── README.md # Credentials directory documentation
+| | |── google_credentials.json # Google credentials file
+|── src/
+| |── **init**.py # Python package initialization
+| |── main.py # Main Python script
+| |── automation/
+| | |── **init**.py # Automation package initialization
+| | |── puppeteer_scripts/
+| | | |── handshake.js # Puppeteer script for handshake
+| | | |── index.ts # TypeScript index file
+| | | |── utils.js # Utility JavaScript file
+| | |── selenium_scripts/
+| | | |── utils.py # Selenium utility Python file
+| |── config/
+| | |── environment.py # Environment configuration file
+| |── connectors/
+| | |── **init**.py # Connectors package initialization
+| | |── discord_connector.py # Discord connector implementation
+| | |── email_connector.py # Email connector implementation
+| | |── handshake_connector.py # Handshake connector implementation
+| | |── linkedin_connector.py # LinkedIn connector implementation
+| | |── slack_connector.py # Slack connector implementation
+| |── processing/
+| | |── **init**.py # Processing package initialization
+| | |── message_classifier.py # Message classifier implementation
+| | |── nlp_processor.py # NLP processor implementation
+| |── scheduling/
+| | |── **init**.py # Scheduling package initialization
+| | |── calendly.py # Calendly scheduling implementation
+| | |── google_calendar.py # Google Calendar scheduling implementation
+| |── storage/
+| | |── **init**.py # Storage package initialization
+| | |── google_sheets.py # Google Sheets storage implementation
+|── tests/
+| |── **init**.py # Tests package initialization
+| |── conftest.py # Pytest configuration file
+| |── run_all_tests.py # Script to run all tests
+| |── run_component_tests.py # Script to run component tests
+| |── run_credential_tests.py # Script to run credential tests
+| |── component/
+| | |── test_automation.py # Automation component test
+| | |── test_connectors.py # Connectors component test
+| | |── test_processing.py # Processing component test
+| | |── test_scheduling.py # Scheduling component test
+| | |── test_storage.py # Storage component test
+| |── credentials/
+| | |── README.md # Credentials tests documentation
+| | |── test_calendly_credentials.py # Calendly credentials test
+| | |── test_discord_credentials.py # Discord credentials test
+| | |── test_email_credentials.py # Email credentials test
+| | |── test_openai_credentials.py # OpenAI credentials test
+| | |── test_phantombuster_credentials.py # Phantombuster credentials test
+| | |── test_sheets_credentials.py # Google Sheets credentials test
+| | |── test_slack_credentials
+
+````
 
 ## Validating the CI/CD Pipeline
 
@@ -322,7 +323,7 @@ chmod +x scripts/setup_monitoring.sh
 
 # Test your CI commands locally
 make ci-test
-```
+````
 
 ### 2. GitHub Repository Configuration
 

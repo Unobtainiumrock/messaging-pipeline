@@ -25,7 +25,7 @@ COPY package.json .
 RUN if [ "$ENVIRONMENT" = "production" ]; then \
         uv pip install --system . ; \
     else \
-        uv pip install --system ".[dev]" ; \
+        uv pip install --system -e ".[dev]" ; \
     fi
 
 # Install node dependencies
@@ -43,4 +43,4 @@ RUN if [ "$ENVIRONMENT" = "development" ] ; then \
 ENV ENVIRONMENT=$ENVIRONMENT
 
 # Default command
-CMD ["python", "src/main.py"] 
+CMD ["python", "src/main.py"]
