@@ -111,7 +111,8 @@ $RECYCLE.BIN/
 .env.production.local
 
 # Docker
-.docker/_compose.override.yml
+.docker/
+docker-compose.override.yml
 
 # Browser automation
 .wdm/
