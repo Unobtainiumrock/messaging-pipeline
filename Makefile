@@ -1,4 +1,4 @@
-.PHONY: setup test lint update-readme clean docker-build docker-run docker-test docker-shell docker-run-dev docker-run-prod docker-build-dev docker-build-prod docker-logs docker-stop ec2-deploy uv-add uv-add-dev
+.PHONY: setup test lint update-readme clean docker-build docker-run docker-test docker-shell docker-run-dev docker-run-prod docker-build-dev docker-build-prod docker-logs docker-stop ec2-deploy uv-add uv-add-dev ci-test ci-build ci-deploy-staging ci-deploy-production
 
 # Setup development environment
 setup:
@@ -81,6 +81,23 @@ ec2-deploy:
 	scp -i $(EC2_KEY) -r ./* ec2-user@$(EC2_IP):/home/ec2-user/comm-centralizer/
 	ssh -i $(EC2_KEY) ec2-user@$(EC2_IP) "cd /home/ec2-user/comm-centralizer && ./setup.sh && make docker-run-prod"
 
+# CI/CD commands
+ci-test:
+	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+	black --check .
+	pytest tests/component
+	npm run tsc
+	npm run lint
+
+ci-build:
+	docker build -t ghcr.io/$(shell git config --get remote.origin.url | cut -d: -f2 | sed 's/\.git//'):$(shell git rev-parse --short HEAD) .
+
+ci-deploy-staging:
+	./scripts/deploy_to_ec2.sh $(STAGING_EC2_IP) $(SSH_KEY_PATH) staging $(shell git rev-parse --short HEAD)
+
+ci-deploy-production:
+	./scripts/deploy_to_ec2.sh $(PRODUCTION_EC2_IP) $(SSH_KEY_PATH) production $(shell git rev-parse --short HEAD)
+
 help:
 	@echo "Available commands:"
 	@echo "  setup          - Set up complete development environment (Docker + Python)"
@@ -101,4 +118,8 @@ help:
 	@echo "  docker-build-prod - Build production environment Docker container"
 	@echo "  docker-logs - View Docker container logs"
 	@echo "  docker-stop - Stop Docker container"
-	@echo "  ec2-deploy - Deploy to EC2" 
+	@echo "  ec2-deploy - Deploy to EC2"
+	@echo "  ci-test      - Run CI/CD tests"
+	@echo "  ci-build     - Build Docker image for CI/CD"
+	@echo "  ci-deploy-staging - Deploy to staging environment"
+	@echo "  ci-deploy-production - Deploy to production environment"

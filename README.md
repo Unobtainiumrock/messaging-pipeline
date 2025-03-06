@@ -19,6 +19,7 @@ An automated system to centralize communications from multiple platforms (Email,
 - Google Cloud Platform account for API access
 - PhantomBuster account for LinkedIn automation
 - Calendly account
+- AWS account (for CI/CD deployment)
 
 ## Setup
 
@@ -48,6 +49,57 @@ The application requires various API credentials:
 
 Run credential tests after setup to verify your configuration.
 
+## CI/CD Pipeline
+
+This project includes a complete CI/CD pipeline using GitHub Actions for automated testing, building, and deployment:
+
+### GitHub Actions Workflow
+
+The pipeline includes the following stages:
+
+- **Test**: Runs linting, type checking, and unit tests for both Python and JavaScript/TypeScript
+- **Build**: Builds and pushes Docker images to GitHub Container Registry
+- **Deploy-Staging**: Automatically deploys to the staging environment when code is pushed to the `develop` branch
+- **Deploy-Production**: Automatically deploys to production when code is pushed to the `main` branch or manually triggered
+
+### Required Secrets
+
+To use the CI/CD pipeline, set up these secrets in your GitHub repository:
+
+1. `AWS_ACCESS_KEY_ID`: AWS access key with EC2 permissions
+2. `AWS_SECRET_ACCESS_KEY`: AWS secret key
+3. `AWS_REGION`: AWS region (e.g., us-east-1)
+4. `STAGING_EC2_IP`: IP address of your staging EC2 instance
+5. `PRODUCTION_EC2_IP`: IP address of your production EC2 instance
+6. `EC2_SSH_PRIVATE_KEY`: SSH private key for EC2 access
+
+### Environment Configuration
+
+The project uses environment-specific configuration files:
+
+- `.env.staging`: Configuration for the staging environment
+- `.env.production`: Configuration for the production environment
+
+### Manual Deployment
+
+To manually trigger a deployment to production:
+
+1. Go to GitHub Actions
+2. Select the "CI/CD Pipeline" workflow
+3. Click "Run workflow"
+4. Select "true" for the "Deploy to production" option
+5. Click "Run workflow"
+
+### Version Tagging
+
+To create a new version tag:
+
+1. Go to GitHub Actions
+2. Select the "Tag Version" workflow
+3. Click "Run workflow"
+4. Enter the version (e.g., "v1.0.0")
+5. Click "Run workflow"
+
 ## Project Automation with Makefile
 
 This project uses a Makefile to standardize workflows and automate common tasks:
@@ -56,7 +108,8 @@ This project uses a Makefile to standardize workflows and automate common tasks:
 - **Application Lifecycle**: Start, stop, and monitor services in different environments
 - **Testing & Quality**: Run tests, linting, and code quality checks
 - **Dependency Management**: Add and manage Python dependencies with UV
-- **Deployment**: Automate deployment to production environments
+- **CI/CD Operations**: Execute CI/CD tasks for testing, building, and deployment
+- **Deployment**: Automate deployment to staging and production environments
 
 Run `make help` to see all available commands with descriptions.
 
@@ -77,6 +130,22 @@ make docker-logs
 
 # Rebuild containers (after changing Dockerfile)
 make docker-build
+```
+
+## CI/CD Operations
+
+```bash
+# Run all CI tests
+make ci-test
+
+# Build Docker image for CI
+make ci-build
+
+# Deploy to staging
+make ci-deploy-staging
+
+# Deploy to production
+make ci-deploy-production
 ```
 
 ## Dependency Management
@@ -162,74 +231,79 @@ The following commands are available to help with development tasks:
 ```bash
 comm-centralizer/
 ├── scripts/
-│   ├── .dir_structure_cache.json    # Cache file for directory structure
-│   ├── deploy_to_ec2.sh             # Script to deploy to EC2 instance
-│   ├── directory_printer.py         # Script to print directory structure
-│   ├── ec2_security_setup.sh        # Script for EC2 security setup
-│   ├── schedule_job.py              # Script for scheduling jobs
-│   ├── update_readme_structure.py   # Script to update README structure
+│   ├── .dir_structure_cache.json   # Cache file storing directory structure
+│   ├── deploy_to_ec2.sh            # Script for deploying to EC2 instance
+│   ├── directory_printer.py        # Python script for printing directory structure
+│   ├── ec2_security_setup.sh       # Script for setting up security on EC2 instance
+│   ├── schedule_job.py             # Script for scheduling jobs
+│   ├── setup_env_credentials.sh    # Script for setting up environment credentials
+│   ├── setup_monitoring.sh         # Script for setting up monitoring
+│   └── update_readme_structure.py  # Python script for updating README structure
+├── terraform/
+│   └── main.tf                     # Terraform main configuration file
 ├── config/
-│   ├── config.py                    # Configuration file
-│   ├── credentials/
-│   │   ├── .gitkeep                  # Git placeholder file
-│   │   ├── README.md                 # Credentials directory documentation
-│   │   ├── google_credentials.json   # Google API credentials
+│   ├── config.py                   # Configuration file
+│   └── credentials/
+│       ├── .gitkeep                # Git placeholder file
+│       ├── README.md               # Credentials README
+│       └── google_credentials.json  # Google API credentials
 ├── src/
-│   ├── main.py                       # Main script
+│   ├── main.py                     # Main Python script
 │   ├── automation/
-│   │   ├── puppeteer_scripts/
-│   │   │   ├── handshake.js          # Puppeteer script for handshake
-│   │   │   ├── index.ts              # Puppeteer script index
-│   │   │   ├── utils.js              # Puppeteer utility functions
-│   │   ├── selenium_scripts/
-│   │   │   ├── utils.py              # Selenium utility functions
+│   │   └── puppeteer_scripts/
+│   │       ├── handshake.js        # Puppeteer script for handshake
+│   │       ├── index.ts            # Puppeteer script index
+│   │       └── utils.js            # Puppeteer utility functions
+│   │   └── selenium_scripts/
+│   │       └── utils.py            # Selenium utility functions
 │   ├── config/
-│   │   ├── environment.py            # Environment configuration
+│   │   └── environment.py          # Environment configuration
 │   ├── connectors/
-│   │   ├── discord_connector.py      # Discord API integration
-│   │   ├── email_connector.py        # Email API integration
-│   │   ├── handshake_connector.py    # Handshake API integration
-│   │   ├── linkedin_connector.py     # LinkedIn API integration
-│   │   ├── slack_connector.py        # Slack API integration
+│   │   ├── discord_connector.py    # Discord API connector
+│   │   ├── email_connector.py      # Email API connector
+│   │   ├── handshake_connector.py  # Handshake API connector
+│   │   ├── linkedin_connector.py   # LinkedIn API connector
+│   │   └── slack_connector.py      # Slack API connector
 │   ├── processing/
-│   │   ├── message_classifier.py     # Message classification logic
-│   │   ├── nlp_processor.py          # Natural Language Processing logic
+│   │   ├── message_classifier.py   # Message classifier
+│   │   └── nlp_processor.py        # NLP processor
 │   ├── scheduling/
-│   │   ├── calendly.py               # Calendly scheduling integration
-│   │   ├── google_calendar.py        # Google Calendar integration
+│   │   ├── calendly.py             # Calendly scheduling integration
+│   │   └── google_calendar.py      # Google Calendar scheduling integration
 │   ├── storage/
-│   │   ├── google_sheets.py          # Google Sheets integration
+│   │   └── google_sheets.py        # Google Sheets storage integration
 ├── tests/
-│   ├── run_all_tests.py              # Script to run all tests
-│   ├── run_component_tests.py        # Script to run component tests
-│   ├── run_credential_tests.py       # Script to run credential tests
+│   ├── run_all_tests.py            # Script for running all tests
+│   ├── run_component_tests.py      # Script for running component tests
+│   ├── run_credential_tests.py     # Script for running credential tests
 │   ├── component/
-│   │   ├── test_automation.py        # Automation component tests
-│   │   ├── test_connectors.py        # Connectors component tests
-│   │   ├── test_processing.py        # Processing component tests
-│   │   ├── test_scheduling.py        # Scheduling component tests
-│   │   ├── test_storage.py           # Storage component tests
-│   ├── credentials/
-│   │   ├── README.md                 # Credentials tests documentation
-│   │   ├── test_calendly_credentials.py    # Calendly credentials tests
-│   │   ├── test_discord_credentials.py     # Discord credentials tests
-│   │   ├── test_email_credentials.py       # Email credentials tests
-│   │   ├── test_openai_credentials.py     # OpenAI credentials tests
-│   │   ├── test_phantombuster_credentials.py   # Phantombuster credentials tests
-│   │   ├── test_sheets_credentials.py     # Google Sheets credentials tests
-│   │   ├── test_slack_credentials.py      # Slack credentials tests
-├── .eslintrc.js                      # ESLint configuration file
-├── .pre-commit-config.yaml           # Pre-commit configuration file
-├── Dockerfile                        # Docker configuration file
-├── Makefile                          # Makefile for project tasks
-├── README.md                         # Project documentation
-├── TODOPROMPTS.txt                   # TODO prompts file
-├── comm_centralizer.log              # Project log file
-├── docker-compose.dev.yml            # Docker Compose file for development
-├── docker-compose.prod.yml           # Docker Compose file for production
-├── docker-compose.yml                # Docker Compose file
-├── package.json                      # Node.js package configuration
-├── pyproject.toml                    # Python project configuration
-├── setup.sh                          # Setup script
-└── tsconfig.json                     # TypeScript configuration
+│   │   ├── test_automation.py      # Automation component tests
+│   │   ├── test_connectors.py      # Connectors component tests
+│   │   ├── test_processing.py      # Processing component tests
+│   │   ├── test_scheduling.py      # Scheduling component tests
+│   │   └── test_storage.py         # Storage component tests
+│   └── credentials/
+│       ├── README.md               # Credentials README
+│       ├── test_calendly_credentials.py  # Calendly credentials test
+│       ├── test_discord_credentials.py   # Discord credentials test
+│       ├── test_email_credentials.py     # Email credentials test
+│       ├── test_openai_credentials.py    # OpenAI credentials test
+│       ├── test_phantombuster_credentials.py  # Phantombuster credentials test
+│       ├── test_sheets_credentials.py     # Google Sheets credentials test
+│       └── test_slack_credentials.py      # Slack credentials test
+├── .eslintrc.js                    # ESLint configuration
+├── .pre-commit-config.yaml         # Pre-commit configuration
+├── Dockerfile                      # Dockerfile for development
+├── Dockerfile.prod                 # Dockerfile for production
+├── Makefile                        # Makefile for project
+├── README.md                       # Project documentation
+├── TODOPROMPTS.txt                 # TODO prompts file
+├── comm_centralizer.log            # Project log file
+├── docker-compose.dev.yml          # Docker Compose file for development
+├── docker-compose.prod.yml         # Docker Compose file for production
+├── docker-compose.yml              # Docker Compose file
+├── package.json                    # Node.js package file
+├── pyproject.toml                  # Python project configuration
+├── setup.sh                        # Setup script
+└── tsconfig.json                   # TypeScript configuration
 ```
