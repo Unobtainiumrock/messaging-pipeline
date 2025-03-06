@@ -5,10 +5,14 @@
   "main": "src/automation/puppeteer_scripts/index.js",
   "scripts": {
     "handshake": "node src/automation/puppeteer_scripts/handshake.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write \"src/**/*.{js,jsx,json}\""
   },
   "dependencies": {
     "dotenv": "^16.0.0",
     "puppeteer": "^24.3.1"
+  },
+  "devDependencies": {
+    "prettier": "^3.1.0"
   }
 }
