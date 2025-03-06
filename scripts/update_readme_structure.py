@@ -7,10 +7,11 @@ import os
 import re
 import subprocess
 import json
-from dotenv import load_dotenv
 import io
 import sys
+import hashlib
 from pathlib import Path
+from dotenv import load_dotenv
 from openai import OpenAI  # Import the OpenAI client
 
 # Import the directory printer functionality
@@ -19,6 +20,9 @@ from directory_printer import print_dir_tree
 
 # Load environment variables for API keys
 load_dotenv()
+
+# Cache file for storing the last directory structure hash
+CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".dir_structure_cache.json")
 
 def get_directory_structure():
     """Get the directory structure using the imported print_dir_tree function."""
@@ -35,6 +39,37 @@ def get_directory_structure():
     sys.stdout = old_stdout
     
     return output
+
+def calculate_structure_hash(structure):
+    """Calculate a hash of the directory structure to detect changes."""
+    return hashlib.md5(structure.encode('utf-8')).hexdigest()
+
+def is_structure_changed(structure):
+    """Check if the directory structure has changed since last update."""
+    structure_hash = calculate_structure_hash(structure)
+    
+    # If cache file exists, read the previous hash
+    if os.path.exists(CACHE_FILE):
+        try:
+            with open(CACHE_FILE, 'r') as f:
+                cache = json.load(f)
+            previous_hash = cache.get('structure_hash')
+            return structure_hash != previous_hash
+        except (json.JSONDecodeError, KeyError):
+            # If cache file is corrupted, assume structure has changed
+            return True
+    
+    # If no cache file, assume structure has changed
+    return True
+
+def update_cache(structure):
+    """Update the cache file with the current structure hash."""
+    structure_hash = calculate_structure_hash(structure)
+    cache = {'structure_hash': structure_hash}
+    
+    os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
+    with open(CACHE_FILE, 'w') as f:
+        json.dump(cache, f)
 
 def add_comments_with_llm(directory_structure):
     """Send the directory structure to an LLM to add explanatory comments using OpenAI SDK."""
@@ -82,8 +117,6 @@ Only return the formatted directory structure, nothing else.
             max_tokens=1000
         )
         
-        print(response)
-
         # Extract content from response
         content = response.choices[0].message.content
         
@@ -141,15 +174,24 @@ def main():
     print(f"Using project root: {project_root}")
     print("Fetching directory structure...")
     directory_structure = get_directory_structure()
-    print("="*100)
-    print(directory_structure)
-    print("="*100)
+    
+    # Check if structure has changed
+    if not is_structure_changed(directory_structure):
+        print("Project structure unchanged. Skipping update.")
+        return
+    
+    print("Project structure has changed. Proceeding with update...")
     
     print("Adding explanatory comments with LLM...")
     annotated_structure = add_comments_with_llm(directory_structure)
     
     print("Updating README.md...")
-    update_readme(annotated_structure)
+    success = update_readme(annotated_structure)
+    
+    if success:
+        # Update the cache with the new structure
+        update_cache(directory_structure)
+        print("Cache updated with new directory structure.")
 
 if __name__ == "__main__":
     main() 
