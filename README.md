@@ -136,72 +136,72 @@ Run credential tests after setup to verify your configuration.
 ```bash
 comm-centralizer/
 ├── scripts/
-|   ├── .dir_structure_cache.json   # Cache file for directory structure
-|   ├── deploy_to_ec2.sh            # Script for deploying to EC2
-|   ├── directory_printer.py        # Script for printing directory structure
-|   ├── ec2_security_setup.sh       # Script for setting up EC2 security
-|   ├── schedule_job.py             # Script for scheduling jobs
-|   └── update_readme_structure.py  # Script for updating README structure
+│   ├── .dir_structure_cache.json    # Cache file for directory structure
+│   ├── deploy_to_ec2.sh             # Script for deploying to EC2
+│   ├── directory_printer.py         # Script for printing directory structure
+│   ├── ec2_security_setup.sh        # Script for setting up EC2 security
+│   ├── schedule_job.py              # Script for scheduling jobs
+│   ├── update_readme_structure.py   # Script for updating README structure
 ├── config/
-|   ├── config.py                   # Configuration file
-|   ├── credentials/
-|   |   ├── .gitkeep                # Placeholder file for git
-|   |   ├── README.md               # Credentials documentation
-|   |   └── google_credentials.json  # Google API credentials
+│   ├── config.py                    # Configuration file
+│   ├── credentials/
+│   │   ├── .gitkeep                 # Placeholder file for git
+│   │   ├── README.md                # Credentials directory documentation
+│   │   ├── google_credentials.json   # Google API credentials
 ├── src/
-|   ├── main.py                     # Main script
-|   ├── automation/
-|   |   ├── selenium_utils.py       # Utility functions for Selenium
-|   |   └── puppeteer_scripts/
-|   |       ├── handshake.js        # Puppeteer script for handshake
-|   |       └── utils.js            # Utility functions for Puppeteer
-|   ├── config/
-|   |   └── environment.py          # Environment configuration
-|   ├── connectors/
-|   |   ├── discord_connector.py    # Discord API integration
-|   |   ├── email_connector.py      # Email API integration
-|   |   ├── handshake_connector.py  # Handshake API integration
-|   |   ├── linkedin_connector.py   # LinkedIn API integration
-|   |   └── slack_connector.py      # Slack API integration
-|   ├── processing/
-|   |   ├── message_classifier.py   # Message classification logic
-|   |   └── nlp_processor.py        # Natural Language Processing logic
-|   ├── scheduling/
-|   |   ├── calendly.py             # Calendly API integration
-|   |   └── google_calendar.py      # Google Calendar API integration
-|   └── storage/
-|       └── google_sheets.py        # Google Sheets API integration
+│   ├── main.py                      # Main script
+│   ├── automation/
+│   │   ├── selenium_utils.py        # Utility functions for Selenium
+│   │   ├── puppeteer_scripts/
+│   │   │   ├── handshake.js         # Puppeteer script for handshake
+│   │   │   ├── utils.js             # Puppeteer utility functions
+│   ├── config/
+│   │   ├── environment.py           # Environment configuration
+│   ├── connectors/
+│   │   ├── discord_connector.py     # Discord API integration
+│   │   ├── email_connector.py       # Email API integration
+│   │   ├── handshake_connector.py   # Handshake API integration
+│   │   ├── linkedin_connector.py    # LinkedIn API integration
+│   │   ├── slack_connector.py       # Slack API integration
+│   ├── processing/
+│   │   ├── message_classifier.py    # Message classification functions
+│   │   ├── nlp_processor.py         # Natural Language Processing functions
+│   ├── scheduling/
+│   │   ├── calendly.py              # Calendly API integration
+│   │   ├── google_calendar.py       # Google Calendar API integration
+│   ├── storage/
+│   │   ├── google_sheets.py         # Google Sheets API integration
 ├── tests/
-|   ├── run_all_tests.py            # Script to run all tests
-|   ├── run_component_tests.py      # Script to run component tests
-|   ├── run_credential_tests.py     # Script to run credential tests
-|   ├── component/
-|   |   ├── test_automation.py      # Automation component tests
-|   |   ├── test_connectors.py      # Connectors component tests
-|   |   ├── test_processing.py      # Processing component tests
-|   |   ├── test_scheduling.py      # Scheduling component tests
-|   |   └── test_storage.py         # Storage component tests
-|   └── credentials/
-|       ├── README.md               # Credentials tests documentation
-|       ├── test_calendly_credentials.py  # Calendly credentials tests
-|       ├── test_discord_credentials.py   # Discord credentials tests
-|       ├── test_email_credentials.py     # Email credentials tests
-|       ├── test_openai_credentials.py    # OpenAI credentials tests
-|       ├── test_phantombuster_credentials.py  # Phantombuster credentials tests
-|       ├── test_sheets_credentials.py    # Google Sheets credentials tests
-|       └── test_slack_credentials.py     # Slack credentials tests
-├── .dockerignore                   # Docker ignore file
-├── .pre-commit-config.yaml         # Pre-commit configuration file
-├── Dockerfile                      # Docker configuration file
-├── Makefile                        # Makefile for project tasks
-├── README.md                       # Project documentation
-├── TODOPROMPTS.txt                 # TODO prompts for development
-├── comm_centralizer.log            # Project log file
-├── docker-compose.dev.yml          # Docker compose file for development
-├── docker-compose.prod.yml         # Docker compose file for production
-├── docker-compose.yml              # Docker compose file
-├── package.json                    # Node.js package file
-├── pyproject.toml                  # Python project configuration file
-├── requirements.txt                # Python dependencies file
-└── setup.sh                        # Setup script
+│   ├── run_all_tests.py             # Script for running all tests
+│   ├── run_component_tests.py       # Script for running component tests
+│   ├── run_credential_tests.py      # Script for running credential tests
+│   ├── component/
+│   │   ├── test_automation.py       # Automation component tests
+│   │   ├── test_connectors.py       # Connectors component tests
+│   │   ├── test_processing.py       # Processing component tests
+│   │   ├── test_scheduling.py       # Scheduling component tests
+│   │   ├── test_storage.py          # Storage component tests
+│   ├── credentials/
+│   │   ├── README.md                # Credentials directory documentation
+│   │   ├── test_calendly_credentials.py   # Calendly credentials test
+│   │   ├── test_discord_credentials.py    # Discord credentials test
+│   │   ├── test_email_credentials.py      # Email credentials test
+│   │   ├── test_openai_credentials.py     # OpenAI credentials test
+│   │   ├── test_phantombuster_credentials.py   # Phantombuster credentials test
+│   │   ├── test_sheets_credentials.py     # Google Sheets credentials test
+│   │   ├── test_slack_credentials.py      # Slack credentials test
+├── .dockerignore                    # Docker ignore file
+├── .pre-commit-config.yaml          # Pre-commit configuration file
+├── Dockerfile                       # Docker configuration file
+├── Makefile                         # Makefile for automation
+├── README.md                        # Project documentation
+├── TODOPROMPTS.txt                  # To-do prompts file
+├── comm_centralizer.log             # Project log file
+├── docker-compose.dev.yml           # Docker compose file for development
+├── docker-compose.prod.yml          # Docker compose file for production
+├── docker-compose.yml               # Docker compose file
+├── package.json                     # Node.js package file
+├── pyproject.toml                   # Python project configuration file
+├── requirements.txt                 # Python requirements file
+└── setup.sh                         # Setup script
 ```

@@ -2,7 +2,7 @@
 
 import os
 import sys
-# Hello world
+
 # List of directories/files to exclude from output
 DEFAULT_IGNORED = {
     "node_modules", ".git", ".DS_Store", "__pycache__", "venv", ".idea",

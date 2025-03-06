@@ -5,6 +5,9 @@ WORKDIR /app
 # Accept environment argument
 ARG ENVIRONMENT=development
 
+# Install UV
+RUN pip install uv
+
 # Install system dependencies with proper cleanup
 RUN apt-get update && apt-get install -y \
     nodejs \
@@ -14,24 +17,27 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy necessary files for dependency installation
+COPY pyproject.toml .
+COPY package.json .
 
-# Install additional dev dependencies if in development mode
-RUN if [ "$ENVIRONMENT" = "development" ] ; then \
-    pip install --no-cache-dir pytest pytest-cov black flake8 mypy ; \
+# Install Python dependencies using UV (handles both production and dev)
+RUN if [ "$ENVIRONMENT" = "production" ]; then \
+        uv pip install --system . ; \
+    else \
+        uv pip install --system ".[dev]" ; \
     fi
 
 # Install node dependencies
-COPY package.json .
 RUN npm install
 
-# Copy project files
+# Copy the rest of the application
 COPY . .
 
 # Set up pre-commit hooks in development only
-RUN if [ "$ENVIRONMENT" = "development" ] ; then pip install pre-commit ; fi
+RUN if [ "$ENVIRONMENT" = "development" ] ; then \
+        pre-commit install || echo "Pre-commit installation skipped" ; \
+    fi
 
 # Define environment variable
 ENV ENVIRONMENT=$ENVIRONMENT
