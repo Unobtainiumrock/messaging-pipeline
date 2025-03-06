@@ -5,6 +5,9 @@ screenshots/
 config/credentials/*
 !config/credentials/.gitkeep
 !config/credentials/README.md
+# Cache files
+**/dir_structure_cache.json
+.cache/
 
 # Python
 __pycache__/
@@ -39,6 +42,7 @@ env/
 ENV/
 .env/
 .venv/
+.uv/
 
 # Node.js
 node_modules/
@@ -47,6 +51,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 package-lock.json
+# TypeScript
+*.tsbuildinfo
+.eslintcache
+dist/
+# Next.js (if you use it in the future)
+.next/
+out/
 
 # IDEs and editors
 # VS Code
@@ -99,5 +110,14 @@ $RECYCLE.BIN/
 .env.test.local
 .env.production.local
 
-# Add UV specific entries
-.uv/ 
+# Docker
+.docker/_compose.override.yml
+
+# Browser automation
+.wdm/
+chromedriver
+geckodriver
+
+# Temporary files
+tmp/
+temp/
