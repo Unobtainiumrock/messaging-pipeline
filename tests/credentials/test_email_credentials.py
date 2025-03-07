@@ -6,11 +6,15 @@ import smtplib
 import sys
 import pytest
 from typing import Optional, List
+from tests.conftest import print_env_vars
 
 
 def test_email_credentials() -> None:
     """Test email credentials for IMAP and SMTP access."""
     print("Testing Email credentials...")
+
+    # Print environment variables to debug
+    print_env_vars()
 
     # Check environment variables
     email_type: str = os.getenv("EMAIL_TYPE", "").lower()
@@ -69,6 +73,8 @@ def test_email_credentials() -> None:
     print(f"\nTesting SMTP connection to {smtp_server_host}:{smtp_port_num}...")
     try:
         server: smtplib.SMTP = smtplib.SMTP(smtp_server_host, smtp_port_num)
+        server.ehlo()
+        server.starttls()
         if email_username is None or email_password is None:
             raise ValueError("Username or password is missing")
         server.login(email_username, email_password)
