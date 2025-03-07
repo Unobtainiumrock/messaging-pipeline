@@ -6,11 +6,23 @@ import json
 import io
 import sys
 import hashlib
+import logging
 from dotenv import load_dotenv
 from openai import OpenAI
 from directory_printer import print_dir_tree
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(os.path.join(os.path.dirname(os.path.abspath(__file__)), "readme_update.log")),
+        logging.StreamHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
 
 # Load environment variables for API keys
 load_dotenv()
@@ -45,8 +57,8 @@ def is_structure_changed(structure: str) -> bool:
     """Check if the directory structure has changed since last update."""
     structure_hash = calculate_structure_hash(structure)
 
-    # Print the current hash for debugging
-    print(f"Current structure hash: {structure_hash}")
+    # Log the current hash for debugging
+    logger.info(f"Current structure hash: {structure_hash}")
 
     # If cache file exists, read the previous hash
     if os.path.exists(CACHE_FILE):
@@ -54,15 +66,15 @@ def is_structure_changed(structure: str) -> bool:
             with open(CACHE_FILE, "r") as f:
                 cache = json.load(f)
             previous_hash = cache.get("structure_hash")
-            print(f"Previous structure hash: {previous_hash}")
+            logger.info(f"Previous structure hash: {previous_hash}")
             return structure_hash != previous_hash
         except (json.JSONDecodeError, KeyError) as e:
             # If cache file is corrupted, assume structure has changed
-            print(f"Error reading cache file: {e}")
+            logger.error(f"Error reading cache file: {e}")
             return True
 
     # If no cache file, assume structure has changed
-    print("No cache file found, assuming structure has changed.")
+    logger.info("No cache file found, assuming structure has changed.")
     return True
 
 
@@ -74,7 +86,7 @@ def update_cache(structure: str) -> None:
     os.makedirs(os.path.dirname(CACHE_FILE), exist_ok=True)
     with open(CACHE_FILE, "w") as f:
         json.dump(cache, f)
-    print(f"Updated cache with hash: {structure_hash}")
+    logger.info(f"Updated cache with hash: {structure_hash}")
 
 
 def add_comments_with_llm(directory_structure: str) -> str:
@@ -82,10 +94,10 @@ def add_comments_with_llm(directory_structure: str) -> str:
     # Get API key from environment
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        print("Error: OPENAI_API_KEY environment variable not set.")
+        logger.error("Error: OPENAI_API_KEY environment variable not set.")
         return directory_structure
 
-    print("Using OpenAI API to generate comments...")
+    logger.info("Using OpenAI API to generate comments...")
 
     # Create OpenAI client
     client = OpenAI(api_key=api_key)
@@ -118,7 +130,7 @@ Only return the formatted directory structure, nothing else.
 
     # Call OpenAI API using the SDK
     try:
-        print("Sending request to OpenAI API...")
+        logger.info("Sending request to OpenAI API...")
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
@@ -128,7 +140,7 @@ Only return the formatted directory structure, nothing else.
 
         # Extract content from response
         content = response.choices[0].message.content
-        print("Received response from OpenAI API")
+        logger.info("Received response from OpenAI API")
 
         # Extract the code block if present
         code_block_match = re.search(r"```(?:bash)?\n([\s\S]+?)\n```", content)
@@ -136,7 +148,7 @@ Only return the formatted directory structure, nothing else.
             return code_block_match.group(1)
         return content.strip()
     except Exception as e:
-        print(f"Error calling OpenAI API: {e}")
+        logger.error(f"Error calling OpenAI API: {e}")
         return directory_structure
 
 
@@ -148,7 +160,7 @@ def update_readme(annotated_structure: str) -> bool:
     readme_path = os.path.join(project_root, "README.md")
 
     if not os.path.exists(readme_path):
-        print(f"Error: README.md not found at {readme_path}")
+        logger.error(f"Error: README.md not found at {readme_path}")
         return False
 
     with open(readme_path, "r") as file:
@@ -172,20 +184,20 @@ def update_readme(annotated_structure: str) -> bool:
         if new_content != content:
             with open(readme_path, "w") as file:
                 file.write(new_content)
-            print(f"README.md successfully updated at {readme_path}")
+            logger.info(f"README.md successfully updated at {readme_path}")
             return True
         else:
-            print("No changes needed in README.md")
+            logger.info("No changes needed in README.md")
             return False
     else:
-        print("Warning: Could not find Project Structure section in README.md. Adding it...")
+        logger.warning("Could not find Project Structure section in README.md. Adding it...")
 
         # If section doesn't exist, add it at the end
         section_to_add = f"\n\n## Project Structure\n\n```bash\n{annotated_structure}\n```\n"
         with open(readme_path, "a") as file:
             file.write(section_to_add)
 
-        print(f"Added Project Structure section to README.md at {readme_path}")
+        logger.info(f"Added Project Structure section to README.md at {readme_path}")
         return True
 
 
@@ -196,33 +208,33 @@ def main() -> None:
     project_root = os.path.dirname(script_dir)
     os.chdir(project_root)
 
-    print(f"Using project root: {project_root}")
-    print("Fetching directory structure...")
+    logger.info(f"Using project root: {project_root}")
+    logger.info("Fetching directory structure...")
     directory_structure = get_directory_structure()
 
     # Print the first few lines of the structure for debugging
     structure_preview = "\n".join(directory_structure.split("\n")[:10])
-    print(f"Structure preview:\n{structure_preview}...\n")
+    logger.info(f"Structure preview:\n{structure_preview}...\n")
 
     # Check if structure has changed
     if not is_structure_changed(directory_structure):
-        print("Project structure unchanged. Skipping update.")
+        logger.info("Project structure unchanged. Skipping update.")
         return
 
-    print("Project structure has changed. Proceeding with update...")
+    logger.info("Project structure has changed. Proceeding with update...")
 
-    print("Adding explanatory comments with LLM...")
+    logger.info("Adding explanatory comments with LLM...")
     annotated_structure = add_comments_with_llm(directory_structure)
 
-    print("Updating README.md...")
+    logger.info("Updating README.md...")
     success = update_readme(annotated_structure)
 
     if success:
         # Update the cache with the new structure
         update_cache(directory_structure)
-        print("Cache updated with new directory structure.")
+        logger.info("Cache updated with new directory structure.")
     else:
-        print("README update failed or no changes were needed.")
+        logger.info("README update failed or no changes were needed.")
 
 
 if __name__ == "__main__":

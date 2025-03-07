@@ -104,11 +104,88 @@ This ensures imports (like `crontab`) are properly recognized.
 
 ```bash
 comm-centralizer/
-|── scripts/
-|   |── .dir_structure_cache.json    # Cache file for directory structure
-|   |── deploy_to_ec2.sh             # Script to deploy to EC2 instance
-|   |── directory_printer.py         # Python script to print directory structure
-|   |── ec2_security_setup.sh        # Script for setting up security on EC2
+├── scripts/
+│   ├── .dir_structure_cache.json   # Cache file for directory structure
+│   ├── deploy_to_ec2.sh            # Script for deploying to EC2
+│   ├── directory_printer.py        # Script for printing directory structure
+│   ├── ec2_security_setup.sh       # Script for setting up EC2 security
+│   ├── readme_update.log           # Log file for readme updates
+│   ├── schedule_job.py             # Script for scheduling jobs
+│   ├── setup_env_credentials.sh    # Script for setting up environment credentials
+│   ├── setup_monitoring.sh         # Script for setting up monitoring
+│   └── update_readme_structure.py  # Script for updating readme structure
+├── .ruff_cache/
+│   ├── .gitignore                  # Git ignore file for cache
+│   ├── CACHEDIR.TAG                # Cache directory tag
+│   └── content/
+├── terraform/
+│   └── main.tf                     # Main Terraform configuration file
+├── config/
+│   ├── config.py                   # Configuration file
+│   └── credentials/
+│       ├── .gitkeep                # Git keep file
+│       ├── README.md               # Credentials README
+│       ├── gmail_token.json        # Gmail token file
+│       └── google_credentials.json  # Google credentials file
+├── src/
+│   ├── main.py                     # Main Python file
+│   ├── automation/
+│   │   └── puppeteer_scripts/
+│   │       ├── handshake.js        # Puppeteer script for handshake
+│   │       ├── index.ts            # TypeScript index file
+│   │       └── utils.js            # Utility script
+│   │   └── selenium_scripts/
+│   │       └── utils.py            # Selenium utility script
+│   ├── config/
+│   │   └── environment.py          # Environment configuration file
+│   ├── connectors/
+│   │   ├── discord_connector.py    # Discord connector implementation
+│   │   ├── email_connector.py      # Email connector implementation
+│   │   ├── handshake_connector.py  # Handshake connector implementation
+│   │   ├── linkedin_connector.py   # LinkedIn connector implementation
+│   │   └── slack_connector.py      # Slack connector implementation
+│   ├── processing/
+│   │   ├── message_classifier.py   # Message classifier implementation
+│   │   └── nlp_processor.py        # NLP processor implementation
+│   ├── scheduling/
+│   │   ├── calendly.py             # Calendly scheduling implementation
+│   │   └── google_calendar.py      # Google Calendar scheduling implementation
+│   ├── storage/
+│   │   └── google_sheets.py        # Google Sheets storage implementation
+├── tests/
+│   ├── conftest.py                 # Configuration file for tests
+│   ├── component/
+│   │   ├── README.md               # Component test README
+│   │   ├── test_automation.py      # Automation test script
+│   │   ├── test_connectors.py      # Connectors test script
+│   │   ├── test_processing.py      # Processing test script
+│   │   ├── test_scheduling.py      # Scheduling test script
+│   │   └── test_storage.py         # Storage test script
+│   ├── credentials/
+│   │   ├── README.md               # Credentials test README
+│   │   ├── test_calendly_credentials.py  # Calendly credentials test script
+│   │   ├── test_discord_credentials.py   # Discord credentials test script
+│   │   ├── test_email_credentials.py     # Email credentials test script
+│   │   ├── test_openai_credentials.py    # OpenAI credentials test script
+│   │   ├── test_phantombuster_credentials.py  # Phantombuster credentials test script
+│   │   ├── test_sheets_credentials.py    # Google Sheets credentials test script
+│   │   └── test_slack_credentials.py     # Slack credentials test script
+├── .eslintrc.js                     # ESLint configuration file
+├── .pre-commit-config.yaml          # Pre-commit configuration file
+├── Dockerfile                       # Dockerfile for development
+├── Dockerfile.prod                  # Dockerfile for production
+├── Makefile                         # Makefile for project
+├── README.md                        # Project documentation
+├── TODOPROMPTS.txt                  # TODO prompts file
+├── comm_centralizer.log             # Project log file
+├── docker-compose.dev.yml           # Docker Compose file for development
+├── docker-compose.prod.yml          # Docker Compose file for production
+├── docker-compose.yml               # Docker Compose file
+├── package.json                     # Node.js package file
+├── pyproject.toml                   # Poetry project file
+├── pytest.ini                       # Pytest configuration file
+├── setup.sh                         # Setup script
+└── tsconfig.json                    # TypeScript configuration file
 ```
 
 **That's it!** For most use cases, just run `setup.sh` and use `make docker-run-dev` to get going, then rely on the GitHub Actions pipeline to handle testing and production deployment.
