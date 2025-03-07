@@ -100,18 +100,15 @@ This ensures imports (like `crontab`) are properly recognized.
 3. **Push changes** to GitHub to trigger automated tests (and optionally deploy to AWS if you have that configured).
 4. **Check logs** with `make docker-logs`.
 
-## Directory Structure (High-Level)
+## Project Structure
 
 ```bash
 comm-centralizer/
-├── scripts/                 # Setup, deployment, and utility scripts
-├── config/                  # Configuration and credentials
-├── src/                     # Source code (automation, connectors, processing, scheduling, storage)
-├── tests/                   # Test suites (component & credential tests)
-├── Dockerfile               # Docker configuration
-├── Makefile                 # Centralizes common tasks
-├── README.md                # Project overview (this file)
-└── setup.sh                 # Main script that sets up everything
+|── scripts/
+|   |── .dir_structure_cache.json    # Cache file for directory structure
+|   |── deploy_to_ec2.sh             # Script to deploy to EC2 instance
+|   |── directory_printer.py         # Python script to print directory structure
+|   |── ec2_security_setup.sh        # Script for setting up security on EC2
 ```
 
 **That's it!** For most use cases, just run `setup.sh` and use `make docker-run-dev` to get going, then rely on the GitHub Actions pipeline to handle testing and production deployment.
