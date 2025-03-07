@@ -11,6 +11,8 @@ from src.automation.selenium_scripts.utils import (
     wait_for_page_load,
     fill_form,
     retry_operation,
+    navigate_to_url,
+    wait_for_element,
 )
 
 
@@ -23,12 +25,10 @@ class TestSeleniumUtils:
         driver = MagicMock()
         return driver
 
-    @patch("src.automation.selenium_utils.webdriver.Chrome")
-    @patch("src.automation.selenium_utils.Service")
-    @patch("src.automation.selenium_utils.ChromeDriverManager")
-    def test_create_driver(
-        self, mock_driver_manager, mock_service, mock_chrome, mock_driver
-    ):
+    @patch("src.automation.selenium_scripts.utils.webdriver.Chrome")
+    @patch("src.automation.selenium_scripts.utils.Service")
+    @patch("src.automation.selenium_scripts.utils.ChromeDriverManager")
+    def test_create_driver(self, mock_driver_manager, mock_service, mock_chrome, mock_driver):
         """Test creating a Chrome WebDriver."""
         # Configure mocks
         mock_driver_manager.return_value.install.return_value = "/path/to/chromedriver"
@@ -45,7 +45,7 @@ class TestSeleniumUtils:
     def test_safe_find_element(self, mock_driver):
         """Test safely finding an element."""
         # Mock WebDriverWait
-        with patch("src.automation.selenium_utils.WebDriverWait") as mock_wait:
+        with patch("src.automation.selenium_scripts.utils.WebDriverWait") as mock_wait:
             mock_element = MagicMock()
             mock_wait.return_value.until.return_value = mock_element
 
@@ -75,16 +75,14 @@ class TestSeleniumUtils:
         mock_element2 = MagicMock()
 
         # Configure safe_find_element to return our mock elements
-        with patch("src.automation.selenium_utils.safe_find_element") as mock_find:
+        with patch("src.automation.selenium_scripts.utils.safe_find_element") as mock_find:
             mock_find.side_effect = lambda driver, by, value: {
                 "username": mock_element1,
                 "password": mock_element2,
             }.get(value)
 
             # Test
-            result = fill_form(
-                mock_driver, {"username": "testuser", "password": "testpass"}
-            )
+            result = fill_form(mock_driver, {"username": "testuser", "password": "testpass"})
 
             # Assertions
             assert result is True
@@ -105,6 +103,28 @@ class TestSeleniumUtils:
         # Assertions
         assert result == "success"
         assert mock_operation.call_count == 2
+
+    def test_navigate_to_url(self, mock_driver):
+        """Test navigating to a URL."""
+        url = "https://example.com"
+        navigate_to_url(mock_driver, url)
+
+        mock_driver.get.assert_called_once_with(url)
+
+    @patch("src.automation.selenium_scripts.utils.WebDriverWait")
+    def test_wait_for_element(self, mock_wait, mock_driver):
+        """Test waiting for an element."""
+        mock_wait_instance = MagicMock()
+        mock_wait.return_value = mock_wait_instance
+
+        mock_element = MagicMock()
+        mock_wait_instance.until.return_value = mock_element
+
+        element = wait_for_element(mock_driver, "test_selector")
+
+        assert element is mock_element
+        mock_wait.assert_called_once()
+        mock_wait_instance.until.assert_called_once()
 
 
 class TestPuppeteerScripts:

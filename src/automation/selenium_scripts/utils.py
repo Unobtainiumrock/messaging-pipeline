@@ -1,10 +1,9 @@
-"""Utility functions for Selenium browser automation."""
+"""Selenium utilities for web automation."""
 import logging
 import time
 from typing import Optional, Dict, Any, Callable
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,38 +15,34 @@ logger = logging.getLogger(__name__)
 
 def create_driver(headless: bool = True) -> webdriver.Chrome:
     """
-    Create a Chrome WebDriver instance.
+    Create and configure a Chrome WebDriver instance.
 
     Args:
-        headless: Whether to run in headless mode
+        headless: Whether to run Chrome in headless mode
 
     Returns:
-        WebDriver instance
+        WebDriver: Configured Chrome WebDriver instance
     """
-    try:
-        chrome_options = Options()
+    logger.info("Setting up Chrome WebDriver")
+    chrome_options = webdriver.ChromeOptions()
 
-        if headless:
-            chrome_options.add_argument("--headless")
+    if headless:
+        chrome_options.add_argument("--headless")
 
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--disable-notifications")
-        chrome_options.add_argument("--disable-infobars")
-        chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
 
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.maximize_window()
 
-        # Set default timeout
-        driver.implicitly_wait(10)
+    # Set default timeout
+    driver.implicitly_wait(10)
 
-        logger.info("Chrome WebDriver created successfully")
-        return driver
-
-    except Exception as e:
-        logger.error(f"Error creating Chrome WebDriver: {str(e)}", exc_info=True)
-        raise
+    logger.info("Chrome WebDriver created successfully")
+    return driver
 
 
 def safe_find_element(
@@ -189,9 +184,7 @@ def fill_form(driver: webdriver.Chrome, form_data: Dict[str, str]) -> bool:
     return success
 
 
-def retry_operation(
-    operation: Callable, max_retries: int = 3, retry_delay: int = 1
-) -> Any:
+def retry_operation(operation: Callable, max_retries: int = 3, retry_delay: int = 1) -> Any:
     """
     Retry an operation multiple times with delay.
 
@@ -220,3 +213,63 @@ def retry_operation(
 
     if last_exception:
         raise last_exception
+
+
+def wait_for_element(
+    driver: webdriver.Chrome, selector: str, timeout: int = 10
+) -> Optional[webdriver.remote.webelement.WebElement]:
+    """
+    Wait for an element to be visible on the page.
+
+    Args:
+        driver: WebDriver instance
+        selector: CSS selector for the element
+        timeout: Maximum wait time in seconds
+
+    Returns:
+        WebElement if found, None otherwise
+    """
+    try:
+        wait = WebDriverWait(driver, timeout)
+        return wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, selector)))
+    except TimeoutException:
+        logger.warning(f"Timeout waiting for element: {selector}")
+        return None
+    except Exception as e:
+        logger.error(f"Error finding element: {selector}: {str(e)}")
+        return None
+
+
+def navigate_to_url(driver: webdriver.Chrome, url: str) -> bool:
+    """
+    Navigate to a URL and wait for the page to load.
+
+    Args:
+        driver: WebDriver instance
+        url: URL to navigate to
+
+    Returns:
+        True if navigation successful, False otherwise
+    """
+    logger.info(f"Navigating to {url}")
+    driver.get(url)
+    return wait_for_page_load(driver)
+
+
+def click_element(driver: webdriver.Chrome, by: By, value: str) -> bool:
+    """
+    Safely click an element on the page.
+
+    Args:
+        driver: WebDriver instance
+        by: Locator type (e.g., By.ID)
+        value: Locator value
+
+    Returns:
+        True if successful, False otherwise
+    """
+    element = safe_find_element(driver, by, value)
+    if element:
+        element.click()
+        return True
+    return False

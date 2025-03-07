@@ -1,45 +1,43 @@
 #!/usr/bin/env python3
-"""
-Test script to verify Slack API credentials.
-"""
+"""Test script to verify Slack API credentials."""
 import os
-from dotenv import load_dotenv
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
+import sys
+import pytest
+from typing import Optional, Dict, Any, List
 
-# Load environment variables
-load_dotenv()
 
-def test_slack_credentials():
+def test_slack_credentials() -> None:
     """Test Slack Bot Token."""
     print("Testing Slack credentials...")
-    
+
     # Check environment variables
-    bot_token = os.getenv('SLACK_BOT_TOKEN')
-    
+    bot_token: Optional[str] = os.getenv("SLACK_BOT_TOKEN")
+
     print(f"- Bot Token: {'✓ Found' if bot_token else '✗ MISSING'}")
-    
+
     if not bot_token:
-        print("❌ ERROR: Slack Bot Token missing")
-        return False
-    
+        print("❌ ERROR: Slack Bot token missing")
+        pytest.skip("Slack Bot token not found in environment variables")
+
     # Test token with a simple request
     print("\nTesting connection to Slack API...")
-    client = WebClient(token=bot_token)
-    
+    client: WebClient = WebClient(token=bot_token)
+
     try:
         # Test auth to verify token
-        response = client.auth_test()
-        
-        if response['ok']:
-            print(f"✅ Authentication successful!")
+        response: Dict[str, Any] = client.auth_test()
+
+        if response["ok"]:
+            print("✅ Authentication successful!")
             print(f"  - Bot Name: {response.get('user', 'unknown')}")
             print(f"  - Team: {response.get('team', 'unknown')}")
-            
+
             # Test listing channels
-            channels_response = client.conversations_list(types="public_channel")
-            channels = channels_response.get('channels', [])
-            
+            channels_response: Dict[str, Any] = client.conversations_list(types="public_channel")
+            channels: List[Dict[str, Any]] = channels_response.get("channels", [])
+
             if channels:
                 print(f"\nFound {len(channels)} channels. First few:")
                 for i, channel in enumerate(channels[:5]):
@@ -48,14 +46,12 @@ def test_slack_credentials():
                         break
             else:
                 print("\nNo channels found, or bot doesn't have permission to list channels.")
-            
+
             print("\n✅ SUCCESS: Slack credentials are working correctly!")
-            return True
-            
         else:
             print(f"❌ Authentication failed: {response.get('error', 'Unknown error')}")
-            return False
-        
+            pytest.fail(f"Authentication failed: {response.get('error', 'Unknown error')}")
+
     except SlackApiError as e:
         print(f"❌ Slack API Error: {e.response['error']}")
         print("\nTroubleshooting tips:")
@@ -66,11 +62,24 @@ def test_slack_credentials():
         print("   - im:read")
         print("   - im:write")
         print("3. Check that your bot has been added to your workspace")
-        return False
-    
+        pytest.fail(f"Slack API Error: {e.response['error']}")
+
     except Exception as e:
         print(f"❌ Error: {str(e)}")
+        pytest.fail(f"Test failed with exception: {str(e)}")
+
+
+def run_test() -> bool:
+    """Run the test and return boolean result for command line usage."""
+    try:
+        test_slack_credentials()
+        return True
+    except pytest.skip.Exception:
+        return False
+    except Exception:
         return False
 
+
 if __name__ == "__main__":
-    test_slack_credentials() 
+    success = run_test()
+    sys.exit(0 if success else 1)

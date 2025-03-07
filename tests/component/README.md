@@ -1,18 +1,18 @@
-# Credential Tests
+# Component Tests
 
-This directory contains tests to verify API credentials and service connections.
+This directory contains tests to verify service components.
 
 ## Naming Conventions
 
-- **File naming**: `test_<service>_credentials.py`
-- **Function naming**: `test_<service>_credentials()`
+- **File naming**: `test_<service>.py`
+- **Function naming**: `test_<service>()`
 
 ## Example
 
 ```python
 # test_example_credentials.py
-def test_example_credentials():
-    """Test Example API credentials."""
+def test_example():
+    """Test Example Component."""
 ```
 
 ## Adding New Tests
