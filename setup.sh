@@ -53,23 +53,23 @@ echo -e "${GREEN}Created .gitkeep file in credentials directory.${NC}"
 # Check if user can access Docker
 if ! docker info &> /dev/null; then
     echo -e "${RED}Cannot connect to the Docker daemon.${NC}"
-    
+
     # Check if Docker service exists
     if systemctl list-unit-files | grep -q docker.service; then
         echo -e "${YELLOW}Docker service exists but may not be running. Attempting to start...${NC}"
-        
+
         # Try to start the Docker service and capture the result
         if sudo systemctl start docker; then
             echo -e "${YELLOW}Waiting for Docker service to initialize...${NC}"
             # Give Docker more time to fully initialize
             sleep 5
-            
+
             if docker info &> /dev/null; then
                 echo -e "${GREEN}Successfully started Docker service.${NC}"
             else
                 echo -e "${RED}Docker service started but daemon is not responding.${NC}"
                 echo -e "${YELLOW}This might be a permissions issue.${NC}"
-                
+
                 # Check if the current user is in the docker group
                 if groups | grep -q docker; then
                     echo -e "${YELLOW}Your user is in the docker group, but you may need to log out and log back in.${NC}"
@@ -81,7 +81,7 @@ if ! docker info &> /dev/null; then
                     echo -e "${YELLOW}You need to log out and log back in for this change to take effect.${NC}"
                     echo -e "${YELLOW}After logging back in, run this setup script again.${NC}"
                 fi
-                
+
                 echo -e "${YELLOW}Setup partially complete. Docker container was not built.${NC}"
                 exit 1
             fi
@@ -95,12 +95,12 @@ if ! docker info &> /dev/null; then
     else
         echo -e "${YELLOW}Docker service not found or not properly installed.${NC}"
         echo -e "${YELLOW}You might need to reinstall Docker or check your installation.${NC}"
-        
+
         if [ "${DOCKER_INSTALLED}" = true ]; then
             echo -e "${YELLOW}You need to log out and log back in for Docker group changes to take effect.${NC}"
             echo -e "${YELLOW}After logging back in, run this setup script again to complete the installation.${NC}"
         fi
-        
+
         echo -e "${YELLOW}Setup partially complete. Docker container was not built.${NC}"
         exit 1
     fi
@@ -134,6 +134,11 @@ else
     pre-commit install
 fi
 
+# Install Pytype only (removing MonkeyType)
+echo -e "${YELLOW}Installing Pytype...${NC}"
+uv pip install pytype==2023.10.17
+echo -e "${GREEN}Pytype installed successfully.${NC}"
+
 echo -e "${GREEN}Setup complete!${NC}"
 echo -e "--------------------------------------------------"
 echo -e "Next steps:"
@@ -145,4 +150,4 @@ echo -e "To start the production environment, run: ${YELLOW}make docker-run-prod
 echo -e "For more commands, run: ${YELLOW}make help${NC}"
 
 # Make the script executable
-chmod +x setup.sh 
+chmod +x setup.sh

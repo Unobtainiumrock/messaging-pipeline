@@ -25,7 +25,8 @@ COPY package.json .
 RUN if [ "$ENVIRONMENT" = "production" ]; then \
         uv pip install --system . ; \
     else \
-        uv pip install --system -e ".[dev]" ; \
+        uv pip install --system -e ".[dev]" && \
+        uv pip install --system pytype==2023.10.17 ; \
     fi
 
 # Install node dependencies

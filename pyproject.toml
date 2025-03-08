@@ -55,6 +55,9 @@ dev = [
     "black>=22.1.0",
     "flake8>=4.0.1",
     "mypy>=0.931",
+
+    # Type Checking
+    "pytype>=2023.10.17",
 ]
 
 [tool.hatch.build.targets.wheel]
