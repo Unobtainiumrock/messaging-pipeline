@@ -40,7 +40,7 @@ jobs:
           pip install uv
           # Uses 'uv' to install the project in editable mode (-e .) and its development dependencies ([dev]).
           # Dependencies are likely defined in pyproject.toml or setup.py.
-          uv pip install -e ".[dev]"
+          uv pip install --system -e ".[dev]"
 
       # Step 4: Runs flake8 linter to check Python code style and potential errors.
       - name: Lint with flake8
