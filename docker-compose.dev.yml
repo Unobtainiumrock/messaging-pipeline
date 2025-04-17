@@ -2,17 +2,30 @@ version: '3.8'
 
 services:
   app:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
       args:
         - ENVIRONMENT=development
     volumes:
       - .:/app
+      - ~/.ssh:/root/.ssh:ro # Mount SSH keys as read-only
     env_file: .env
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
+      # Explicitly set GIT variables from host
+      - GIT_USER_NAME
+      - GIT_USER_EMAIL
+      # SSH agent support
+      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     ports:
-      - "8000:8000"  # For web interface
-    command: python src/main.py 
+      - '8000:8000' # For web interface
+    entrypoint: ['/app/scripts/docker-entrypoint.sh']
+    command: python src/main.py
+    # Use host network mode to simplify networking
+    network_mode: 'host'
+    # Alternative DNS settings if host networking doesn't work
+    # dns:
+    #   - 8.8.8.8
+    #   - 8.8.4.4

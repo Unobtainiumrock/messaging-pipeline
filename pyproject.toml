@@ -55,6 +55,8 @@ dev = [
     "black>=22.1.0",
     "flake8>=4.0.1",
     "mypy>=0.931",
+    "ruff>=0.0.267",
+    "tiktoken>=0.5.0",
 
     # Type Checking
     "pytype>=2023.10.17",
@@ -62,3 +64,6 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.pytype]
+python_version = "3.11"

@@ -1,3 +1,7 @@
+default_stages: [commit]
+default_language_version:
+  python: python3.11 # This tells pre-commit which version to use
+
 repos:
   - repo: local
     hooks:
@@ -12,10 +16,10 @@ repos:
 
       - id: pytype-annotations
         name: Infer and validate types with Pytype
-        entry: bash -c 'pytype $(git diff --cached --name-only --diff-filter=ACM "*.py" | xargs)'
+        entry: bash -c 'pytype --python-version=3.11 $(git diff --cached --name-only --diff-filter=ACM "*.py" | xargs)'
         language: python
         types: [python]
-        additional_dependencies: [pytype==2023.10.17]
+        additional_dependencies: [pytype==2023.10.17, tiktoken, python-dotenv, openai>=1.0.0]
         pass_filenames: false
 
       - id: typescript-strict-check

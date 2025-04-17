@@ -35,3 +35,5 @@ RUN if [ "$ENVIRONMENT" = "production" ]; then \
     I want to know how this Dockerfile will need to be changed if we put this into deployment, because it appears to always set the environment variable to development.
 12. Add other requirements for the project in the Requirements section of the README.md
 13. Move `src/config/environment.py` to `config/`.
+14. Why do I have to activate ven when running setup.sh? I thought it would handle everything, inclucding venv. Shouldn't everything be in a Docker contrainer for development anyways?
+15. There's an empty .gitkeep file. We need to determine what all needs to be added to this and what its purpose is.

@@ -7,7 +7,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}Setting up the Comm Centralizer project...${NC}"
+echo -e "${YELLOW}Setting up the Docker development environment...${NC}"
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null
@@ -106,47 +106,58 @@ if ! docker info &> /dev/null; then
     fi
 fi
 
-# Build the Docker container
-echo -e "${YELLOW}Building Docker container...${NC}"
-docker-compose -f docker-compose.yml build
+# Build the Docker development container
+echo -e "${YELLOW}Building Docker development container...${NC}"
+docker-compose -f docker-compose.dev.yml build
 
-# Install Python dependencies using UV for local development
-echo -e "${YELLOW}Setting up local Python environment with UV...${NC}"
-if ! command -v uv &> /dev/null; then
-    echo -e "${YELLOW}UV not found. Installing...${NC}"
-    pip install uv
-fi
-echo -e "${GREEN}Creating virtual environment with UV...${NC}"
-uv venv
-echo -e "${GREEN}Installing dependencies...${NC}"
-source .venv/bin/activate || source .venv/Scripts/activate
-uv pip install --editable ".[dev]"
+# Create Docker-based pre-commit runner
+echo -e "${YELLOW}Setting up Docker-based pre-commit runner...${NC}"
+cat > scripts/docker-pre-commit.sh << 'EOF'
+#!/bin/bash
+# Get Git user info from local config
+GIT_USER_NAME=$(git config --get user.name)
+GIT_USER_EMAIL=$(git config --get user.email)
 
-# Install pre-commit hooks locally if pre-commit is available
-echo -e "${YELLOW}Checking for pre-commit...${NC}"
-if command -v pre-commit &> /dev/null; then
-    echo -e "${GREEN}Installing pre-commit hooks...${NC}"
-    pre-commit install
-else
-    echo -e "${YELLOW}Pre-commit not found. Installing...${NC}"
-    pip install pre-commit
-    echo -e "${GREEN}Installing pre-commit hooks...${NC}"
-    pre-commit install
+echo "Running pre-commit hooks with Docker..."
+echo "Files to check: $@"
+
+# Export environment variables from .env file if it exists
+if [ -f .env ]; then
+  echo "Loading environment variables from .env file"
+  export $(grep -v '^#' .env | xargs)
 fi
 
-# Install Pytype only (removing MonkeyType)
-echo -e "${YELLOW}Installing Pytype...${NC}"
-uv pip install pytype==2023.10.17
-echo -e "${GREEN}Pytype installed successfully.${NC}"
+# Run with environment variables explicitly set
+docker-compose -f docker-compose.dev.yml run --rm -T \
+  -e GIT_USER_NAME="$GIT_USER_NAME" \
+  -e GIT_USER_EMAIL="$GIT_USER_EMAIL" \
+  -e OPENAI_API_KEY="$OPENAI_API_KEY" \
+  app pre-commit run --verbose --files "$@"
 
-echo -e "${GREEN}Setup complete!${NC}"
+EXIT_CODE=$?
+echo "Pre-commit completed with exit code: $EXIT_CODE"
+exit $EXIT_CODE
+EOF
+chmod +x scripts/docker-pre-commit.sh
+
+# Create Git hook to use Docker pre-commit
+echo -e "${YELLOW}Setting up Git hook for Docker pre-commit...${NC}"
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/bash
+# Pass all staged files to the Docker pre-commit runner
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+./scripts/docker-pre-commit.sh $STAGED_FILES
+EOF
+chmod +x .git/hooks/pre-commit
+
+echo -e "${GREEN}Docker setup complete!${NC}"
 echo -e "--------------------------------------------------"
 echo -e "Next steps:"
 echo -e "1. Edit .env file with your credentials if you haven't already"
 echo -e "2. For advanced configurations, add API credentials to config/credentials/ directory"
 echo -e "--------------------------------------------------"
 echo -e "To start the development environment, run: ${YELLOW}make docker-run-dev${NC}"
-echo -e "To start the production environment, run: ${YELLOW}make docker-run-prod${NC}"
+echo -e "To get a shell in the development container, run: ${YELLOW}make docker-shell${NC}"
 echo -e "For more commands, run: ${YELLOW}make help${NC}"
 
 # Make the script executable

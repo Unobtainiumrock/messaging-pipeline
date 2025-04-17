@@ -22,7 +22,7 @@ An automated system that consolidates messages from multiple platforms (Email, L
 - **Slack** and **Discord** bot tokens (optional connectors)
 - **AWS** account (if using the included CI/CD to deploy to an EC2 instance, but you can skip AWS if you just need local usage)
 
-## Quick Setup (Single Best Way)
+## Quick Setup
 
 1. **Clone the repository**:
    ```bash
@@ -35,15 +35,48 @@ An automated system that consolidates messages from multiple platforms (Email, L
    ```
    This will:
    - Install Docker and Docker Compose (if missing)
-   - Build Docker images
-   - Create a Python virtual environment (via UV)
-   - Prepare directories and configs
+   - Build the Docker development container with Python 3.11
+   - Configure Docker-based pre-commit hooks
+   - Prepare necessary directories and configs
 3. **Add credentials** to `config/credentials/` (see that folder's README for details).
 4. **Set environment variables** in the `.env` file (you can copy `.env.example` as a starting point).
 5. **Reload your shell or log out/log in** if prompted (Docker permissions).
 6. **Start the app in development mode**:
    ```bash
    make docker-run-dev
+   ```
+
+## Docker-Based Development Workflow
+
+All development is done inside Docker containers to ensure consistency:
+
+1. **Start a development shell**:
+   ```bash
+   make docker-shell
+   ```
+2. **Run the application in development mode**:
+
+   ```bash
+   make docker-run-dev
+   ```
+
+3. **Run tests inside Docker**:
+
+   ```bash
+   make docker-test
+   ```
+
+4. **Run linting and code checks inside Docker**:
+
+   ```bash
+   make docker-lint
+   make docker-pytype
+   ```
+
+5. **Build Docker images**:
+   ```bash
+   make docker-build-dev    # Development image
+   make docker-build-prod   # Production image
    ```
 
 ## CI/CD Pipeline (GitHub Actions)
@@ -58,14 +91,14 @@ An automated system that consolidates messages from multiple platforms (Email, L
 
 ## Testing
 
-Run tests locally or inside Docker:
+All tests run inside Docker to ensure consistency:
 
 ```bash
-# Run all tests (credentials + components)
-make test
-
-# Same tests inside Docker container
+# Run all tests in Docker
 make docker-test
+
+# Run tests with specific options
+make docker-test PYTEST_ARGS="-v tests/component/test_specific.py"
 ```
 
 ### Adding New Tests
@@ -78,125 +111,164 @@ make docker-test
 - `make help`: Lists all available commands.
 - **Common commands**:
   - `make docker-run-dev` - Start the development environment
+  - `make docker-shell` - Open a shell in the Docker container
   - `make docker-stop` - Stop containers
   - `make docker-logs` - View logs
-  - `make docker-build` - Rebuild containers after changes
-  - `make uv-add package=xyz` - Add a Python dependency via UV
-  - `make test` - Run all tests
-  - `make ci-test` - Run all CI tests (linting, type checks, unit tests)
+  - `make docker-build-dev` - Rebuild development container
+  - `make docker-test` - Run tests in Docker
+  - `make docker-lint` - Run linting in Docker
+  - `make docker-pytype` - Run type checking in Docker
+  - `make ci-test` - Run all CI tests
 
-## VS Code Configuration (Optional)
+## VS Code Development (Optional)
 
-1. Open Command Palette → "Python: Select Interpreter"
-2. Choose your Pyenv environment (`~/.pyenv/versions/...`)
-3. Restart VS Code
+For the best VS Code experience with Docker-based development:
 
-This ensures imports (like `crontab`) are properly recognized.
+1. Install the "Remote - Containers" extension
+2. Use Command Palette → "Remote-Containers: Attach to Running Container..."
+3. Select your development container
+4. Edit code directly within the container
+
+Alternatively, you can create a `.devcontainer/devcontainer.json` file with:
+
+```json
+{
+  "name": "Python 3.11 Development",
+  "dockerComposeFile": "../docker-compose.dev.yml",
+  "service": "app",
+  "workspaceFolder": "/app"
+}
+```
 
 ## Simplified Workflow
 
-1. **Install/Update** everything with `./setup.sh`.
-2. **Develop** locally using `make docker-run-dev`.
-3. **Push changes** to GitHub to trigger automated tests (and optionally deploy to AWS if you have that configured).
-4. **Check logs** with `make docker-logs`.
+1. **Install/Update** everything with `./setup.sh`
+2. **Develop** using `make docker-shell` or `make docker-run-dev`
+3. **Test** with `make docker-test` and `make docker-lint`
+4. **Push changes** to GitHub to trigger automated tests and deployment
+5. **Check logs** with `make docker-logs`
+
+## Git Pre-Commit Hooks
+
+The setup automatically configures Git hooks to run pre-commit checks inside Docker, ensuring:
+
+- Code is properly formatted (Black)
+- Type checking passes (Pytype with Python 3.11)
+- Linting passes (Flake8, Ruff)
+- Other checks run as configured in `.pre-commit-config.yaml`
 
 ## Project Structure
 
 ```bash
 comm-centralizer/
-├── scripts/                   # Contains various scripts for deployment, setup, and monitoring
-│   ├── .dir_structure_cache.json   # Cache file for directory structure
-│   ├── deploy_to_ec2.sh         # Script for deploying to EC2 instance
-│   ├── directory_printer.py     # Script for printing directory structure
-│   ├── ec2_security_setup.sh    # Script for setting up security on EC2 instance
-│   ├── readme_update.log        # Log file for readme updates
-│   ├── schedule_job.py          # Script for scheduling jobs
-│   ├── setup_env_credentials.sh  # Script for setting up environment credentials
-│   ├── setup_monitoring.sh      # Script for setting up monitoring
-│   └── update_readme_structure.py  # Script for updating readme structure
-├── .ruff_cache/                # Cache directory for Ruff
-│   ├── .gitignore              # Git ignore file
-│   ├── CACHEDIR.TAG            # Cache directory tag
-│   └── content/                # Content directory
-├── terraform/                  # Terraform configuration files
-│   └── main.tf                 # Main Terraform configuration file
-├── config/                     # Configuration files
-│   ├── config.py               # Configuration file
-│   └── credentials/            # Directory for credentials
-│       ├── .gitkeep            # Git keep file
-│       ├── README.md           # Credentials README
-│       ├── gmail_token.json    # Gmail token file
-│       └── google_credentials.json  # Google credentials file
-├── src/                        # Source code
-│   ├── main.py                 # Main source code file
-│   ├── automation/             # Automation scripts
-│   │   ├── puppeteer_scripts/      # Puppeteer automation scripts
-│   │   │   ├── handshake.js         # Puppeteer handshake script
-│   │   │   ├── index.ts             # Puppeteer index script
-│   │   │   └── utils.js             # Puppeteer utils script
-│   │   └── selenium_scripts/       # Selenium automation scripts
-│   │       └── utils.py             # Selenium utils script
-│   ├── config/                 # Configuration files
-│   │   └── environment.py       # Environment configuration file
-│   ├── connectors/             # API connectors
-│   │   ├── discord_connector.py    # Discord API connector
-│   │   ├── email_connector.py      # Email API connector
-│   │   ├── handshake_connector.py  # Handshake API connector
-│   │   ├── linkedin_connector.py   # LinkedIn API connector
-│   │   └── slack_connector.py      # Slack API connector
-│   ├── processing/             # Data processing scripts
-│   │   ├── message_classifier.py   # Message classifier script
-│   │   └── nlp_processor.py        # NLP processor script
-│   ├── scheduling/             # Scheduling scripts
-│   │   ├── calendly.py           # Calendly scheduling script
-│   │   └── google_calendar.py    # Google Calendar scheduling script
-│   └── storage/                # Storage scripts
-│       └── google_sheets.py     # Google Sheets storage script
-├── .pytype/                    # Pytype configuration files
-│   ├── .gitignore              # Git ignore file
-│   ├── build.ninja             # Build file
-│   ├── imports/                # Import files
-│   │   ├── default.pyi         # Default import file
-│   │   └── tst.imports         # Import test file
-│   └── pyi/                    # Pyi files
-├── tests/                      # Test files
-│   ├── conftest.py             # Configuration test file
-│   ├── component/              # Component tests
-│   │   ├── README.md           # Component tests README
-│   │   ├── test_automation.py  # Automation test file
-│   │   ├── test_connectors.py  # Connectors test file
-│   │   ├── test_processing.py  # Processing test file
-│   │   ├── test_scheduling.py  # Scheduling test file
-│   │   └── test_storage.py     # Storage test file
-│   └── credentials/            # Credentials tests
-│       ├── README.md           # Credentials tests README
-│       ├── test_calendly_credentials.py  # Calendly credentials test file
-│       ├── test_discord_credentials.py  # Discord credentials test file
-│       ├── test_email_credentials.py    # Email credentials test file
-│       ├── test_openai_credentials.py   # OpenAI credentials test file
-│       ├── test_phantombuster_credentials.py  # Phantombuster credentials test file
-│       ├── test_sheets_credentials.py    # Sheets credentials test file
-│       └── test_slack_credentials.py     # Slack credentials test file
-├── .eslintrc.js                # ESLint configuration file
-├── .pre-commit-config.yaml     # Pre-commit configuration file
-├── Dockerfile                  # Dockerfile for development
-├── Dockerfile.prod             # Dockerfile for production
-├── Makefile                    # Makefile for project
-├── README.md                   # Project documentation
-├── TODOPROMPTS.txt             # TODO prompts file
-├── comm_centralizer.log        # Project log file
-├── docker-compose.dev.yml      # Docker Compose file for development
-├── docker-compose.prod.yml     # Docker Compose file for production
-├── docker-compose.yml          # Docker Compose file
-├── monkeytype.sqlite3          # Monkeytype SQLite database
-├── package.json                # Node.js package file
-├── pyproject.toml              # Python project configuration file
-├── pytest.ini                  # Pytest configuration file
-├── setup.sh                    # Setup script
-└── tsconfig.json               # TypeScript configuration file
+├── scripts/
+|   ├── .dir_structure_cache.json    # Cache file for directory structure
+|   ├── deploy_to_ec2.sh             # Script for deploying to EC2
+|   ├── directory_printer.py         # Python script for printing directory structure
+|   ├── docker-entrypoint.sh         # Docker entrypoint script
+|   ├── docker-pre-commit.sh         # Pre-commit script for Docker
+|   ├── ec2_security_setup.sh        # Script for setting up security on EC2
+|   ├── llm_type_annotations.log     # Log file for type annotations
+|   ├── readme_update.log            # Log file for updating README
+|   ├── schedule_job.py              # Script for scheduling jobs
+|   ├── setup_env_credentials.sh     # Script for setting up environment credentials
+|   ├── setup_monitoring.sh          # Script for setting up monitoring
+|   └── type_annotate_python_files.py    # Python script for type annotating Python files
+├── .ruff_cache/
+|   ├── .gitignore                  # Git ignore file for cache directory
+|   ├── CACHEDIR.TAG                # Cache directory tag
+|   └── content/                    # Cache content directory
+├── terraform/
+|   └── main.tf                      # Terraform main configuration file
+├── config/
+|   ├── config.py                   # Configuration file
+|   └── credentials/
+|       ├── .gitkeep                # Git keep file for credentials directory
+|       ├── README.md               # Credentials README
+|       ├── gmail_token.json        # Gmail token file
+|       └── google_credentials.json  # Google credentials file
+├── src/
+|   ├── __init__.py                  # Python package initialization file
+|   ├── main.py                      # Main Python script
+|   ├── automation/
+|   |   ├── __init__.py              # Automation package initialization file
+|   |   ├── puppeteer_scripts/
+|   |   |   ├── handshake.js        # Puppeteer script for handshake
+|   |   |   ├── index.ts            # TypeScript index file
+|   |   |   └── utils.js            # JavaScript utility functions
+|   |   └── selenium_scripts/
+|   |       └── utils.py            # Selenium utility functions
+|   ├── config/
+|   |   └── environment.py          # Environment configuration file
+|   ├── connectors/
+|   |   ├── __init__.py              # Connectors package initialization file
+|   |   ├── discord_connector.py    # Discord connector implementation
+|   |   ├── email_connector.py      # Email connector implementation
+|   |   ├── handshake_connector.py  # Handshake connector implementation
+|   |   ├── linkedin_connector.py   # LinkedIn connector implementation
+|   |   └── slack_connector.py      # Slack connector implementation
+|   ├── processing/
+|   |   ├── __init__.py              # Processing package initialization file
+|   |   ├── message_classifier.py   # Message classifier implementation
+|   |   └── nlp_processor.py        # NLP processor implementation
+|   ├── scheduling/
+|   |   ├── __init__.py              # Scheduling package initialization file
+|   |   ├── calendly.py             # Calendly scheduling implementation
+|   |   └── google_calendar.py      # Google Calendar scheduling implementation
+|   └── storage/
+|       ├── __init__.py              # Storage package initialization file
+|       └── google_sheets.py        # Google Sheets storage implementation
+├── .pytype/
+|   ├── .gitignore                  # Git ignore file for Pytype
+|   ├── .ninja_log                  # Ninja log file
+|   ├── build.ninja                 # Ninja build file
+|   ├── imports/
+|   |   ├── default.pyi             # Default Pyi file
+|   |   ├── tst.imports             # Test imports file
+|   |   └── type_annotate_python_files.imports  # Type annotation imports file
+|   └── pyi/
+|       └── type_annotate_python_files.pyi  # Type annotation Pyi file
+├── tests/
+|   ├── __init__.py                 # Tests package initialization file
+|   ├── conftest.py                 # Pytest configuration file
+|   ├── component/
+|   |   ├── README.md               # Component tests README
+|   |   ├── test_automation.py      # Automation tests
+|   |   ├── test_connectors.py      # Connectors tests
+|   |   ├── test_processing.py      # Processing tests
+|   |   ├── test_scheduling.py      # Scheduling tests
+|   |   └── test_storage.py         # Storage tests
+|   └── credentials/
+|       ├── README.md               # Credentials tests README
+|       ├── test_calendly_credentials.py  # Calendly credentials test
+|       ├── test_discord_credentials.py   # Discord credentials test
+|       ├── test_email_credentials.py     # Email credentials test
+|       ├── test_openai_credentials.py    # OpenAI credentials test
+|       ├── test_phantombuster_credentials.py  # Phantombuster credentials test
+|       ├── test_sheets_credentials.py    # Google Sheets credentials test
+|       └── test_slack_credentials.py     # Slack credentials test
+├── .eslintrc.js                    # ESLint configuration file
+├── .pre-commit-config.yaml         # Pre-commit configuration file
+├── Dockerfile                      # Dockerfile for development
+├── Dockerfile.prod                 # Dockerfile for production
+├── Makefile                        # Makefile for project
+├── README.md                       # Project documentation
+├── REFERENCES.md                   # References for project
+├── TODO.md                         # TODO list for project
+├── TODOPROMPTS.txt                 # TODO prompts for project
+├── comm_centralizer.log            # Project log file
+├── docker-compose.dev.yml          # Docker Compose file for development
+├── docker-compose.prod.yml         # Docker Compose file for production
+├── docker-compose.yml              # Docker Compose file
+├── monkeytype.sqlite3              # Monkeytype SQLite database
+├── package.json                    # Node.js package file
+├── pyproject.toml                  # Python project configuration file
+├── pytest.ini                      # Pytest configuration file
+├── setup.sh                        # Setup script
+└── tsconfig.json                   # TypeScript configuration file
 ```
 
-**That's it!** For most use cases, just run `setup.sh` and use `make docker-run-dev` to get going, then rely on the GitHub Actions pipeline to handle testing and production deployment.
+**That's it!** For most use cases, just run `setup.sh` and use `make docker-run-dev` for development, then rely on the GitHub Actions pipeline to handle testing and production deployment.
 
 ## Architecture
 
@@ -250,7 +322,7 @@ graph TD
 
 # Contributing
 
-1. For the repository
+1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
@@ -275,5 +347,6 @@ To add a new connector, you can follow these steps:
 - **Docker Permissions**: Ensure you've followed the setup instructions and reloaded your shell. Run `su - $USER` before running docker commands.
 - **Authentication failures**: Double-check your credentials in `config/credentials/` and `.env`.
 - **Scheduling not working**: Ensure your Calendly and Google Calendar are properly set up.
+- **Pre-commit hooks failing**: Run `make docker-lint` to see detailed errors
 
 For more issues, check the logs with `make docker-logs`.

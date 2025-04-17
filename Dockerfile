@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM nikolaik/python-nodejs:python3.11-nodejs18
 
 WORKDIR /app
 
@@ -8,26 +8,15 @@ ARG ENVIRONMENT=development
 # Install UV
 RUN pip install uv
 
-# Install system dependencies with proper cleanup
-RUN apt-get update && apt-get install -y \
-    nodejs \
-    npm \
-    curl \
-    git \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Configure Git to trust the mounted directory
+RUN git config --global --add safe.directory /app
 
 # Copy necessary files for dependency installation
 COPY pyproject.toml .
 COPY package.json .
 
-# Install Python dependencies using UV (handles both production and dev)
-RUN if [ "$ENVIRONMENT" = "production" ]; then \
-        uv pip install --system . ; \
-    else \
-        uv pip install --system -e ".[dev]" && \
-        uv pip install --system pytype==2023.10.17 ; \
-    fi
+# Install dependencies using UV with --system flag
+RUN uv pip install --system -e ".[dev]"
 
 # Install node dependencies
 RUN npm install
@@ -42,6 +31,7 @@ RUN if [ "$ENVIRONMENT" = "development" ] ; then \
 
 # Define environment variable
 ENV ENVIRONMENT=$ENVIRONMENT
+ENV PYTHONPATH=/app
 
 # Default command
 CMD ["python", "src/main.py"]
