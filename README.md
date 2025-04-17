@@ -162,110 +162,111 @@ The setup automatically configures Git hooks to run pre-commit checks inside Doc
 ```bash
 comm-centralizer/
 ├── scripts/
-|   ├── .dir_structure_cache.json    # Cache file for directory structure
-|   ├── deploy_to_ec2.sh             # Script for deploying to EC2
-|   ├── directory_printer.py         # Python script for printing directory structure
-|   ├── docker-entrypoint.sh         # Docker entrypoint script
-|   ├── docker-pre-commit.sh         # Pre-commit script for Docker
-|   ├── ec2_security_setup.sh        # Script for setting up security on EC2
-|   ├── llm_type_annotations.log     # Log file for type annotations
-|   ├── readme_update.log            # Log file for updating README
-|   ├── schedule_job.py              # Script for scheduling jobs
-|   ├── setup_env_credentials.sh     # Script for setting up environment credentials
-|   ├── setup_monitoring.sh          # Script for setting up monitoring
-|   └── type_annotate_python_files.py    # Python script for type annotating Python files
+|   ├── .dir_structure_cache.json   # Cache file for directory structure
+|   ├── deploy_to_ec2.sh            # Script for deploying to EC2
+|   ├── directory_printer.py        # Python script for printing directory structure
+|   ├── docker-entrypoint.sh        # Docker entrypoint script
+|   ├── docker-pre-commit.sh        # Pre-commit script for Docker
+|   ├── ec2_security_setup.sh       # Script for setting up EC2 security
+|   ├── llm_type_annotations.log    # Log file for type annotations
+|   ├── readme_update.log           # Log file for readme updates
+|   ├── schedule_job.py             # Python script for scheduling jobs
+|   ├── setup_env_credentials.sh    # Script for setting up environment credentials
+|   ├── setup_monitoring.sh         # Script for setting up monitoring
+|   └── type_annotate_python_files.py  # Python script for type annotating Python files
 ├── .ruff_cache/
-|   ├── .gitignore                  # Git ignore file for cache directory
-|   ├── CACHEDIR.TAG                # Cache directory tag
-|   └── content/                    # Cache content directory
+|   ├── .gitignore                 # Git ignore file for ruff cache
+|   ├── CACHEDIR.TAG               # Cache directory tag
+|   └── content/                   # Cached content directory
 ├── terraform/
-|   └── main.tf                      # Terraform main configuration file
+|   └── main.tf                    # Terraform main configuration file
 ├── config/
-|   ├── config.py                   # Configuration file
+|   ├── config.py                  # Configuration file
 |   └── credentials/
-|       ├── .gitkeep                # Git keep file for credentials directory
-|       ├── README.md               # Credentials README
-|       ├── gmail_token.json        # Gmail token file
-|       └── google_credentials.json  # Google credentials file
+|       ├── .gitkeep               # Git keep file for credentials directory
+|       ├── README.md              # Credentials README file
+|       ├── gmail_token.json       # JSON file for Gmail token
+|       └── google_credentials.json  # JSON file for Google credentials
 ├── src/
-|   ├── __init__.py                  # Python package initialization file
-|   ├── main.py                      # Main Python script
+|   ├── __init__.py                # Python package initialization file
+|   ├── main.py                    # Main Python script
 |   ├── automation/
-|   |   ├── __init__.py              # Automation package initialization file
+|   |   ├── __init__.py            # Automation package initialization file
 |   |   ├── puppeteer_scripts/
-|   |   |   ├── handshake.js        # Puppeteer script for handshake
-|   |   |   ├── index.ts            # TypeScript index file
-|   |   |   └── utils.js            # JavaScript utility functions
+|   |   |   ├── handshake.js       # Puppeteer script for handshake
+|   |   |   ├── index.ts           # TypeScript index file
+|   |   |   └── utils.js           # Puppeteer utility script
 |   |   └── selenium_scripts/
-|   |       └── utils.py            # Selenium utility functions
+|   |       └── utils.py           # Selenium utility script
 |   ├── config/
-|   |   └── environment.py          # Environment configuration file
+|   |   └── environment.py         # Environment configuration file
 |   ├── connectors/
-|   |   ├── __init__.py              # Connectors package initialization file
-|   |   ├── discord_connector.py    # Discord connector implementation
-|   |   ├── email_connector.py      # Email connector implementation
-|   |   ├── handshake_connector.py  # Handshake connector implementation
-|   |   ├── linkedin_connector.py   # LinkedIn connector implementation
-|   |   └── slack_connector.py      # Slack connector implementation
+|   |   ├── __init__.py            # Connectors package initialization file
+|   |   ├── discord_connector.py   # Discord connector script
+|   |   ├── email_connector.py     # Email connector script
+|   |   ├── handshake_connector.py  # Handshake connector script
+|   |   ├── linkedin_connector.py  # LinkedIn connector script
+|   |   └── slack_connector.py     # Slack connector script
 |   ├── processing/
-|   |   ├── __init__.py              # Processing package initialization file
-|   |   ├── message_classifier.py   # Message classifier implementation
-|   |   └── nlp_processor.py        # NLP processor implementation
+|   |   ├── __init__.py            # Processing package initialization file
+|   |   ├── message_classifier.py  # Message classifier script
+|   |   └── nlp_processor.py       # NLP processor script
 |   ├── scheduling/
-|   |   ├── __init__.py              # Scheduling package initialization file
-|   |   ├── calendly.py             # Calendly scheduling implementation
-|   |   └── google_calendar.py      # Google Calendar scheduling implementation
+|   |   ├── __init__.py            # Scheduling package initialization file
+|   |   ├── calendly.py            # Calendly scheduling script
+|   |   └── google_calendar.py     # Google Calendar scheduling script
 |   └── storage/
-|       ├── __init__.py              # Storage package initialization file
-|       └── google_sheets.py        # Google Sheets storage implementation
+|       ├── __init__.py            # Storage package initialization file
+|       └── google_sheets.py       # Google Sheets storage script
 ├── .pytype/
-|   ├── .gitignore                  # Git ignore file for Pytype
-|   ├── .ninja_log                  # Ninja log file
-|   ├── build.ninja                 # Ninja build file
+|   ├── .gitignore                 # Git ignore file for Pytype
+|   ├── .ninja_log                 # Ninja log file
+|   ├── build.ninja                # Ninja build file
 |   ├── imports/
-|   |   ├── default.pyi             # Default Pyi file
-|   |   ├── tst.imports             # Test imports file
+|   |   ├── default.pyi            # Default Pytype import file
+|   |   ├── tst.imports            # Test imports file
 |   |   └── type_annotate_python_files.imports  # Type annotation imports file
 |   └── pyi/
-|       └── type_annotate_python_files.pyi  # Type annotation Pyi file
+|       └── type_annotate_python_files.pyi  # Type annotation Pytype file
 ├── tests/
-|   ├── __init__.py                 # Tests package initialization file
-|   ├── conftest.py                 # Pytest configuration file
+|   ├── __init__.py                # Tests package initialization file
+|   ├── conftest.py                # Pytest configuration file
 |   ├── component/
-|   |   ├── README.md               # Component tests README
-|   |   ├── test_automation.py      # Automation tests
-|   |   ├── test_connectors.py      # Connectors tests
-|   |   ├── test_processing.py      # Processing tests
-|   |   ├── test_scheduling.py      # Scheduling tests
-|   |   └── test_storage.py         # Storage tests
+|   |   ├── README.md              # Component README file
+|   |   ├── test_automation.py     # Automation test script
+|   |   ├── test_connectors.py     # Connectors test script
+|   |   ├── test_processing.py     # Processing test script
+|   |   ├── test_scheduling.py     # Scheduling test script
+|   |   └── test_storage.py        # Storage test script
 |   └── credentials/
-|       ├── README.md               # Credentials tests README
-|       ├── test_calendly_credentials.py  # Calendly credentials test
-|       ├── test_discord_credentials.py   # Discord credentials test
-|       ├── test_email_credentials.py     # Email credentials test
-|       ├── test_openai_credentials.py    # OpenAI credentials test
-|       ├── test_phantombuster_credentials.py  # Phantombuster credentials test
-|       ├── test_sheets_credentials.py    # Google Sheets credentials test
-|       └── test_slack_credentials.py     # Slack credentials test
-├── .eslintrc.js                    # ESLint configuration file
-├── .pre-commit-config.yaml         # Pre-commit configuration file
-├── Dockerfile                      # Dockerfile for development
-├── Dockerfile.prod                 # Dockerfile for production
-├── Makefile                        # Makefile for project
-├── README.md                       # Project documentation
-├── REFERENCES.md                   # References for project
-├── TODO.md                         # TODO list for project
-├── TODOPROMPTS.txt                 # TODO prompts for project
-├── comm_centralizer.log            # Project log file
-├── docker-compose.dev.yml          # Docker Compose file for development
-├── docker-compose.prod.yml         # Docker Compose file for production
-├── docker-compose.yml              # Docker Compose file
-├── monkeytype.sqlite3              # Monkeytype SQLite database
-├── package.json                    # Node.js package file
-├── pyproject.toml                  # Python project configuration file
-├── pytest.ini                      # Pytest configuration file
-├── setup.sh                        # Setup script
-└── tsconfig.json                   # TypeScript configuration file
+|       ├── README.md              # Credentials README file
+|       ├── test_calendly_credentials.py  # Calendly credentials test script
+|       ├── test_discord_credentials.py   # Discord credentials test script
+|       ├── test_email_credentials.py     # Email credentials test script
+|       ├── test_openai_credentials.py    # OpenAI credentials test script
+|       ├── test_phantombuster_credentials.py  # Phantombuster credentials test script
+|       ├── test_sheets_credentials.py    # Google Sheets credentials test script
+|       └── test_slack_credentials.py     # Slack credentials test script
+├── .eslintrc.js                   # ESLint configuration file
+├── .pre-commit-config.yaml        # Pre-commit configuration file
+├── CI-CD.md                       # Continuous Integration and Continuous Deployment documentation
+├── Dockerfile                     # Dockerfile for development
+├── Dockerfile.prod                # Dockerfile for production
+├── Makefile                       # Makefile for project
+├── README.md                      # Project documentation
+├── REFERENCES.md                  # References for project
+├── TODO.md                        # To-Do list for project
+├── TODOPROMPTS.txt                # To-Do prompts for project
+├── comm_centralizer.log           # Log file for comm centralizer
+├── docker-compose.dev.yml         # Docker Compose file for development
+├── docker-compose.prod.yml        # Docker Compose file for production
+├── docker-compose.yml             # Docker Compose file
+├── monkeytype.sqlite3             # SQLite database file for MonkeyType
+├── package.json                   # Node.js package file
+├── pyproject.toml                 # Python project configuration file
+├── pytest.ini                     # Pytest configuration file
+├── setup.sh                       # Setup script
+└── tsconfig.json                  # TypeScript configuration file
 ```
 
 **That's it!** For most use cases, just run `setup.sh` and use `make docker-run-dev` for development, then rely on the GitHub Actions pipeline to handle testing and production deployment.

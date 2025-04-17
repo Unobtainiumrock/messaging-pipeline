@@ -1,137 +1,377 @@
+# Defines the name of the workflow, which appears in the GitHub Actions UI.
 name: CI/CD Pipeline
 
+# Specifies the events that trigger this workflow.
 on:
+  # Triggers on pushes to the 'master' or 'develop' branches.
   push:
-    branches: [main, develop]
+    branches: [master, develop]
+  # Triggers on pull requests targeting the 'master' or 'develop' branches.
   pull_request:
-    branches: [main, develop]
-  workflow_dispatch:
-    inputs:
-      deploy:
-        description: 'Deploy to production'
-        required: true
-        default: 'false'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
+    branches: [master, develop]
 
+# Defines the jobs to be run as part of the workflow.
 jobs:
+  # ----- TEST JOB -----
+  # Defines a job named 'test'.
   test:
+    # Specifies the type of runner machine to use (latest Ubuntu version).
     runs-on: ubuntu-latest
+    # Defines the sequence of steps within the 'test' job.
     steps:
+      # Step 1: Checks out the repository code onto the runner.
       - uses: actions/checkout@v3
 
+      # Step 2: Sets up the specified Python version.
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          # Specifies Python version 3.11.
+          python-version: '3.11'
+          # Enables caching for pip dependencies to speed up subsequent runs.
+          cache: 'pip'
+
+      # Step 3: Installs Python project dependencies.
+      - name: Install dependencies
+        run: |
+          # Upgrades the pip package installer.
+          python -m pip install --upgrade pip
+          # Installs 'uv', a faster Python package installer/resolver.
+          pip install uv
+          # Uses 'uv' to install the project in editable mode (-e .) and its development dependencies ([dev]).
+          # Dependencies are likely defined in pyproject.toml or setup.py.
+          uv pip install -e ".[dev]"
+
+      # Step 4: Runs flake8 linter to check Python code style and potential errors.
+      - name: Lint with flake8
+        run: |
+          # Runs flake8 on all files in the current directory (.).
+          # --count: Prints total counts of errors/warnings.
+          # --select=E9,F63,F7,F82: Only checks for specific error codes (SyntaxError, Invalid literal, Undefined name, etc.).
+          # --show-source: Shows the source code line for each error.
+          # --statistics: Prints counts for each error/warning code.
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      # Step 5: Runs black code formatter in check mode.
+      - name: Format check with black
+        run: |
+          # Runs black with --check flag to verify code formatting without modifying files.
+          # Exits with an error if code needs reformatting.
+          black --check .
+
+      # Step 6: Runs Python tests using pytest and generates coverage report.
+      - name: Run Python tests
+        run: |
+          # Executes pytest on tests found in the 'tests/component' directory.
+          # --cov=src: Measures code coverage for the 'src' directory.
+          # --cov-report=xml: Outputs the coverage report in XML format (typically named coverage.xml).
+          pytest tests/component --cov=src --cov-report=xml
+
+      # Step 7: Sets up the specified Node.js version.
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          # Specifies Node.js version 18.
+          node-version: '18'
+          # Enables caching for npm dependencies.
+          cache: 'npm'
+
+      # Step 8: Installs JavaScript dependencies using npm ci (clean install).
+      - name: Install JS dependencies
+        run: npm ci # Uses package-lock.json for deterministic installs, faster for CI.
+
+      # Step 9: Performs TypeScript type checking.
+      - name: Type check with TypeScript
+        run: npm run tsc # Executes the 'tsc' script defined in package.json (usually runs the TypeScript compiler).
+
+      # Step 10: Runs JavaScript/TypeScript linters.
+      - name: Lint JS/TS
+        run: npm run lint # Executes the 'lint' script defined in package.json (e.g., running ESLint).
+
+      # Step 11: Uploads the generated code coverage report to Codecov.
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          # Specifies the path to the coverage file generated earlier.
+          file: ./coverage.xml
+          # If true, an error during the upload process would fail the CI job. False prevents this.
+          fail_ci_if_error: false
+          # Enables verbose logging from the Codecov action.
+          verbose: true
+
+  # ----- SECURITY SCAN JOB -----
+  # Defines a job named 'security-scan'.
+  security-scan:
+    # Specifies the runner type.
+    runs-on: ubuntu-latest
+    # Specifies that this job depends on the 'test' job completing successfully.
+    needs: test
+    # Defines the steps for security scanning.
+    steps:
+      # Step 1: Checks out the code.
+      - uses: actions/checkout@v3
+      # Step 2: Sets up Docker Buildx (enhanced Docker builder).
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+      # Step 3: Builds the production Docker image using a Makefile target.
+      - name: Build Docker image
+        run: make docker-build-prod # Assumes this target builds an image, likely named 'messaging-pipeline:latest'.
+      # Step 4: Runs Trivy vulnerability scanner on the built Docker image.
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          # Specifies the Docker image to scan (built in the previous step).
+          image-ref: 'messaging-pipeline:latest'
+          # Sets the output format to SARIF (Static Analysis Results Interchange Format).
+          format: 'sarif'
+          # Specifies the output file name for the SARIF report.
+          output: 'trivy-results.sarif'
+          # Only reports vulnerabilities with CRITICAL or HIGH severity.
+          severity: 'CRITICAL,HIGH'
+      # Step 5: Uploads the Trivy scan results (SARIF file) to GitHub Security tab.
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          # Path to the SARIF file generated by Trivy.
+          sarif_file: 'trivy-results.sarif'
+      # Step 6: Scans Node.js dependencies for vulnerabilities using Snyk.
+      - name: Check dependencies for vulnerabilities
+        uses: snyk/actions/node@master
+        # Allows the workflow to continue even if Snyk finds vulnerabilities or encounters an error.
+        continue-on-error: true
+        with:
+          # Configures Snyk arguments, likely failing only if high-severity issues are found (depends on Snyk setup).
+          args: --severity-threshold=high
+        env:
+          # Provides the Snyk API token for authentication, stored as a GitHub repository secret.
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # ----- VERSION JOB -----
+  # Defines a job named 'version' responsible for determining the release version.
+  version:
+    # Depends on the 'test' job completing successfully.
+    needs: test
+    # Specifies the runner type.
+    runs-on: ubuntu-latest
+    # Defines outputs that can be used by other jobs dependent on this one.
+    outputs:
+      # Exports the calculated new version number.
+      new_version: ${{ steps.semantic.outputs.new_version }}
+      # Exports the Git tag created by semantic-release.
+      tag: ${{ steps.semantic.outputs.tag }}
+    # Defines the steps for version calculation.
+    steps:
+      # Step 1: Checks out the code.
+      - uses: actions/checkout@v3
+        with:
+          # Fetches the entire Git history, required by semantic-release.
+          fetch-depth: 0
+      # Step 2: Runs semantic-release to automate versioning.
+      - name: Semantic Release
+        # Assigns an ID to the step to reference its outputs.
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v3
+        with:
+          # Specifies the version of the semantic-release tool to use.
+          semantic_version: 19
+          # Configures branches for semantic-release.
+          branches: |
+            [
+              'master', # Full releases on master branch.
+              {name: 'develop', prerelease: true} # Pre-releases (e.g., 1.0.0-beta.1) on develop branch.
+            ]
+        env:
+          # Provides the GitHub token needed by semantic-release to create tags/releases.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ----- DOCS JOB -----
+  # Defines a job named 'docs' for building and deploying documentation.
+  docs:
+    # Specifies the runner type.
+    runs-on: ubuntu-latest
+    # Depends on the 'test' job completing successfully.
+    needs: test
+    # Defines the steps for documentation handling.
+    steps:
+      # Step 1: Checks out the code.
+      - uses: actions/checkout@v3
+      # Step 2: Sets up Python.
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
+      # Step 3: Installs Python dependencies required for building documentation.
+      - name: Install documentation dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install uv
-          uv pip install -e ".[dev]"
-
-      - name: Lint with flake8
+          pip install mkdocs mkdocstrings mkdocs-material pdoc3
+      # Step 4: Generates API documentation from source code docstrings using pdoc.
+      - name: Generate API documentation
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-
-      - name: Format check with black
-        run: |
-          black --check .
-
-      - name: Run Python tests
-        run: |
-          pytest tests/component
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+          # Runs pdoc to create HTML documentation from the 'src' directory, outputting to './docs/api'.
+          pdoc --html --output-dir ./docs/api src
+      # Step 5: Builds the static documentation site using MkDocs.
+      - name: Build documentation site
+        run: mkdocs build # Reads mkdocs.yml config and builds the site (usually into './site').
+      # Step 6: Deploys the built documentation site to GitHub Pages.
+      - name: Deploy documentation
+        # This step only runs if the event triggering the workflow was a push to the 'master' branch.
+        if: github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          node-version: '18'
-          cache: 'npm'
+          # Provides the GitHub token needed to push to the gh-pages branch.
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Specifies the directory containing the built site to deploy.
+          publish_dir: ./site
 
-      - name: Install JS dependencies
-        run: npm ci
-
-      - name: Type check with TypeScript
-        run: npm run tsc
-
-      - name: Lint JS/TS
-        run: npm run lint
-
+  # ----- BUILD JOB -----
+  # Defines a job named 'build' for building and pushing the final Docker image.
   build:
-    needs: test
+    # Depends on 'test', 'security-scan', and 'version' jobs completing successfully.
+    needs: [test, security-scan, version]
+    # Specifies the runner type.
     runs-on: ubuntu-latest
+    # Defines the steps for building and pushing the image.
     steps:
+      # Step 1: Checks out the code.
       - uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
+      # Step 2: Sets up Docker Buildx.
+      - name: Set up Docker
         uses: docker/setup-buildx-action@v2
-
+      # Step 3: Logs into GitHub Container Registry (ghcr.io).
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
+          # Specifies the registry URL.
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          # Uses the username of the actor that initiated the workflow run.
+          username: ${{ github.actor }}
+          # Uses the automatically generated GitHub token for authentication.
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+      # Step 4: Builds the Docker image and tags it.
+      - name: Build and tag image
+        run: |
+          # Determines the version: uses the output from the 'version' job if available, otherwise falls back to the commit SHA.
+          VERSION=${{ needs.version.outputs.new_version || github.sha }}
+          echo "Using version: $VERSION"
+          # Builds the Docker image using the Dockerfile in the current directory (.).
+          # Tags the image as 'latest' and also with the specific VERSION. Registry is ghcr.io/OWNER/REPO.
+          docker build -t ghcr.io/${{ github.repository }}:latest -t ghcr.io/${{ github.repository }}:$VERSION .
+      # Step 5: Pushes the tagged Docker images to the registry.
+      - name: Push Docker images
+        run: |
+          # Gets the version again (could reuse).
+          VERSION=${{ needs.version.outputs.new_version || github.sha }}
+          # Pushes the 'latest' tag.
+          docker push ghcr.io/${{ github.repository }}:latest
+          # Pushes the specific VERSION tag.
+          docker push ghcr.io/${{ github.repository }}:$VERSION
+      # Step 6: Saves the version-specific Docker image to a tar file for artifact passing.
+      - name: Save Docker image for deployments
+        run: |
+          # Gets the version again.
+          VERSION=${{ needs.version.outputs.new_version || github.sha }}
+          # Saves only the version-tagged image to image.tar.
+          docker save ghcr.io/${{ github.repository }}:$VERSION > image.tar
+      # Step 7: Uploads the saved Docker image tar file as an artifact.
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v3
         with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }},ghcr.io/${{ github.repository }}:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # Name of the artifact.
+          name: docker-image
+          # Path to the file to upload.
+          path: image.tar
+          # Retains the artifact for only 1 day.
+          retention-days: 1
 
+  # ----- DEPLOY STAGING JOB -----
+  # Defines a job named 'deploy-staging'.
   deploy-staging:
+    # Runs only if the event was a push to the 'develop' branch.
     if: github.ref == 'refs/heads/develop'
-    needs: build
+    # Depends on 'build' and 'version' jobs completing successfully.
+    needs: [build, version]
+    # Specifies the runner type.
     runs-on: ubuntu-latest
-    environment: staging
+    # environment: staging # <-- REMOVED: Using repository secrets instead.
+    # Defines the steps for staging deployment.
     steps:
+      # Step 1: Checks out the code (needed for the deployment script).
       - uses: actions/checkout@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      # Step 2: Downloads the Docker image artifact saved by the 'build' job.
+      - name: Download Docker image
+        uses: actions/download-artifact@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to EC2 staging
+          # Name of the artifact to download.
+          name: docker-image
+      # Step 3: Sets up SSH agent for secure key handling.
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          # Loads the specific staging private SSH key from GitHub repository secrets into the agent.
+          ssh-private-key: ${{ secrets.STAGING_SSH_PRIVATE_KEY }} # <-- UPDATED
+      # Step 4: Runs the deployment script for staging.
+      - name: Deploy to staging
         env:
-          EC2_IP: ${{ secrets.STAGING_EC2_IP }}
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          # Sets the VERSION environment variable for the script.
+          VERSION: ${{ needs.version.outputs.new_version || github.sha }}
+          # Sets the Slack webhook URL from repository secrets.
+          NOTIFICATION_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          ./scripts/deploy_to_ec2.sh $EC2_IP private_key.pem
-          rm private_key.pem
+          # Executes the deployment script, passing staging IP (from repository secret), env name 'staging', and the VERSION.
+          # Note: Assumes image loading from image.tar happens within this script or requires separate step.
+          ./scripts/deploy_to_ec2.sh ${{ secrets.STAGING_EC2_IP }} staging $VERSION
 
+          # Sends a notification to Slack about the successful staging deployment.
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Staging deployment of version '$VERSION' completed successfully"}' $NOTIFICATION_WEBHOOK
+
+  # ----- DEPLOY PRODUCTION JOB -----
+  # Defines a job named 'deploy-production'.
   deploy-production:
-    if: github.ref == 'refs/heads/main' || github.event.inputs.deploy == 'true'
-    needs: build
+    # Runs only if the event was a push to the 'master' branch.
+    if: github.ref == 'refs/heads/master'
+    # Depends on 'build' and 'version' jobs completing successfully.
+    needs: [build, version]
+    # Specifies the runner type.
     runs-on: ubuntu-latest
-    environment: production
+    # environment: production # <-- REMOVED: Using repository secrets instead.
+    # Defines the steps for production deployment.
     steps:
+      # Step 1: Checks out the code.
       - uses: actions/checkout@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      # Step 2: Downloads the Docker image artifact.
+      - name: Download Docker image
+        uses: actions/download-artifact@v3
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Deploy to EC2 production
+          name: docker-image
+      # Step 3: Sets up SSH agent with the private key.
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          # Loads the specific production private SSH key from GitHub repository secrets into the agent.
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }} # <-- UPDATED
+      # Step 4: Runs the deployment script for production.
+      - name: Deploy to production
         env:
-          EC2_IP: ${{ secrets.PRODUCTION_EC2_IP }}
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          # Sets the VERSION environment variable.
+          VERSION: ${{ needs.version.outputs.new_version || github.sha }}
+          # Sets the Slack webhook URL from repository secrets.
+          NOTIFICATION_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem
-          ./scripts/deploy_to_ec2.sh $EC2_IP private_key.pem
-          rm private_key.pem
+          # Executes the deployment script, passing production IP (from repository secret), env name 'production', and the VERSION.
+          # Comment notes potential rollback capability within the script.
+          # Note: Assumes image loading from image.tar happens within this script or requires separate step.
+          ./scripts/deploy_to_ec2.sh ${{ secrets.PRODUCTION_EC2_IP }} production $VERSION
+
+          # Sends a notification to Slack about the successful production deployment.
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Production deployment of version '$VERSION' completed successfully"}' $NOTIFICATION_WEBHOOK
+
+      # Step 5: Creates a GitHub Deployment record.
+      - name: Create deployment record
+        uses: chrnorm/deployment-action@v2
+        with:
+          # Provides the GitHub token needed to create the deployment status.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Specifies the environment name (as a label) associated with the deployment.
+          environment: production
+          # References the specific Git tag (or SHA fallback) being deployed.
+          ref: ${{ needs.version.outputs.tag || github.sha }}

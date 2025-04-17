@@ -116,7 +116,7 @@ docker-shell:
 	--entrypoint="/app/scripts/docker-entrypoint.sh" app /bin/bash
 
 docker-test:
-	docker-compose -f docker-compose.dev.yml run --rm app pytest $(PYTEST_ARGS)
+	docker-compose -f docker-compose.dev.yml run --rm app pytest -vs $(PYTEST_ARGS)
 
 docker-lint:
 	docker-compose -f docker-compose.dev.yml run --rm app pre-commit run --all-files

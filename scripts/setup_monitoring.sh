@@ -1,42 +1,53 @@
 #!/bin/bash
-# Install CloudWatch agent
-wget https://s3.amazonaws.com/amazoncloudwatch-agent/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm
-sudo rpm -U ./amazon-cloudwatch-agent.rpm
+# Enhanced monitoring setup with CI/CD integration
 
-# Configure CloudWatch
-cat <<EOF > /tmp/cloudwatch-config.json
-{
-  "agent": {
-    "metrics_collection_interval": 60,
-    "run_as_user": "root"
-  },
-  "logs": {
-    "logs_collected": {
-      "files": {
-        "collect_list": [
-          {
-            "file_path": "/home/ec2-user/comm-centralizer/comm_centralizer.log",
-            "log_group_name": "comm-centralizer-logs",
-            "log_stream_name": "{instance_id}",
-            "timezone": "UTC"
-          }
-        ]
-      }
-    }
-  },
-  "metrics": {
-    "metrics_collected": {
-      "disk": {
-        "measurement": ["used_percent"],
-        "resources": ["/"],
-        "drop_device": true
-      },
-      "mem": {
-        "measurement": ["mem_used_percent"]
-      }
-    }
-  }
+ENVIRONMENT=$1
+VERSION=$2
+
+# Set up CloudWatch alarms for deployment monitoring
+setup_deployment_monitoring() {
+  local env=$1
+  local version=$2
+
+  # Create custom metrics namespace for deployments
+  aws cloudwatch put-metric-data \
+    --namespace "MyApp/Deployments" \
+    --metric-name "Deployment" \
+    --dimensions "Environment=$env,Version=$version" \
+    --value 1
+
+  # Set up alarms for application health
+  aws cloudwatch put-metric-alarm \
+    --alarm-name "$env-app-health" \
+    --alarm-description "Alarm for $env application health" \
+    --metric-name "HealthCheck" \
+    --namespace "MyApp/Health" \
+    --statistic "Average" \
+    --period 60 \
+    --threshold 1 \
+    --comparison-operator LessThanThreshold \
+    --evaluation-periods 3 \
+    --alarm-actions "$SNS_TOPIC_ARN" \
+    --dimensions "Environment=$env,Version=$version"
 }
-EOF
 
-sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/tmp/cloudwatch-config.json -s
+# Set up log monitoring for deployment events
+setup_log_monitoring() {
+  local env=$1
+
+  aws logs create-log-group --log-group-name "/myapp/$env/deployments"
+
+  # Create metric filter for failed deployments
+  aws logs put-metric-filter \
+    --log-group-name "/myapp/$env/deployments" \
+    --filter-name "FailedDeployments" \
+    --filter-pattern "FAILED" \
+    --metric-transformations \
+        metricName=DeploymentFailures,metricNamespace=MyApp/Deployments,metricValue=1
+}
+
+# Initialize monitors based on environment
+setup_deployment_monitoring $ENVIRONMENT $VERSION
+setup_log_monitoring $ENVIRONMENT
+
+echo "Monitoring configured for $ENVIRONMENT deployment of version $VERSION"

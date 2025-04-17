@@ -1,4 +1,6 @@
 #!/bin/bash
+# Enhanced deployment script with versioning and rollback support
+
 set -e
 
 # Colors for terminal output
@@ -10,45 +12,122 @@ NC='\033[0m' # No Color
 # Check if EC2 instance IP is provided
 if [ -z "$1" ]; then
     echo -e "${RED}Error: EC2 instance IP address is required.${NC}"
-    echo -e "Usage: $0 <ec2-ip-address> <path-to-ssh-key>"
+    echo -e "Usage: $0 <ec2-ip-address> <environment> <version> [action]"
     exit 1
 fi
 
-# Check if SSH key is provided
+# Check if environment is provided
 if [ -z "$2" ]; then
-    echo -e "${RED}Error: Path to SSH key is required.${NC}"
-    echo -e "Usage: $0 <ec2-ip-address> <path-to-ssh-key>"
+    echo -e "${RED}Error: Environment is required.${NC}"
+    echo -e "Usage: $0 <ec2-ip-address> <environment> <version> [action]"
+    exit 1
+fi
+
+# Check if version is provided
+if [ -z "$3" ]; then
+    echo -e "${RED}Error: Version is required.${NC}"
+    echo -e "Usage: $0 <ec2-ip-address> <environment> <version> [action]"
     exit 1
 fi
 
 EC2_IP=$1
-SSH_KEY=$2
-ENVIRONMENT=${3:-"production"}  # Default to production if not specified
-DOCKER_TAG=${4:-"latest"}       # Default to latest if not specified
+ENVIRONMENT=$2
+VERSION=$3
+ACTION=${4:-deploy}  # default action is deploy, can be "rollback"
 
-echo -e "${YELLOW}Deploying to $ENVIRONMENT environment at $EC2_IP...${NC}"
+SSH_OPTIONS="-o StrictHostKeyChecking=no"
 
-# Create a production-ready .env file
-echo -e "${YELLOW}Creating $ENVIRONMENT .env file...${NC}"
-cp .env.example .env.$ENVIRONMENT
+echo "=== Deployment to $ENVIRONMENT ==="
+echo "Target: $EC2_IP"
+echo "Version: $VERSION"
+echo "Action: $ACTION"
 
-# Sync project files to EC2
-echo -e "${YELLOW}Copying project files to EC2...${NC}"
-rsync -avz --exclude '.git' --exclude 'venv' --exclude 'node_modules' \
-    -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
-    ./ ec2-user@$EC2_IP:/home/ec2-user/comm-centralizer/
+if [ "$ACTION" == "rollback" ]; then
+  echo "Performing rollback to previous version..."
 
-# SSH into EC2 and set up the project
-echo -e "${YELLOW}Setting up project on EC2...${NC}"
-ssh -i $SSH_KEY -o StrictHostKeyChecking=no ec2-user@$EC2_IP "cd /home/ec2-user/comm-centralizer && \
-    mv .env.$ENVIRONMENT .env && \
-    chmod +x setup.sh && ./setup.sh && \
-    # Pull the specific Docker image if specified
-    [ "$DOCKER_TAG" != "latest" ] && docker pull ghcr.io/your-username/comm-centralizer:$DOCKER_TAG || true && \
-    make docker-build-prod && \
-    make docker-run-prod"
+  # SSH into the server and perform rollback
+  ssh $SSH_OPTIONS ec2-user@$EC2_IP << EOF
+    cd /app
+    echo "Stopping current deployment..."
+    docker-compose down
 
-echo -e "${GREEN}Deployment complete!${NC}"
-echo -e "Your application is now running at: http://$EC2_IP:8000"
-echo -e "To view logs: ssh -i $SSH_KEY ec2-user@$EC2_IP 'cd /home/ec2-user/comm-centralizer && make docker-logs'"
-echo -e "To stop the application: ssh -i $SSH_KEY ec2-user@$EC2_IP 'cd /home/ec2-user/comm-centralizer && make docker-stop'"
+    echo "Checking for previous version..."
+    if [ -f "docker-compose.previous.yml" ]; then
+      echo "Rolling back to previous deployment..."
+      mv docker-compose.previous.yml docker-compose.yml
+      docker-compose up -d
+      echo "Rollback complete!"
+    else
+      echo "No previous version found, cannot rollback!"
+      exit 1
+    fi
+EOF
+
+  exit $?
+fi
+
+# Regular deployment
+echo "Performing deployment of version $VERSION..."
+
+# If deploying a new version, first load the Docker image
+docker load < image.tar
+
+# SSH into the server and deploy
+ssh $SSH_OPTIONS ec2-user@$EC2_IP << EOF
+  # Create app directory if it doesn't exist
+  mkdir -p /app
+  cd /app
+
+  # Save current deployment for rollback if it exists
+  if [ -f "docker-compose.yml" ]; then
+    echo "Backing up current deployment for potential rollback..."
+    cp docker-compose.yml docker-compose.previous.yml
+  fi
+
+  # Create deployment tracking file
+  echo "$VERSION deployed at $(date)" >> deployment_history.log
+
+  # Stop current containers
+  docker-compose down || true
+
+  # Set up new deployment
+  cat > docker-compose.yml << 'EOFINNER'
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY}:${VERSION}
+    restart: always
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+    volumes:
+      - ./config:/app/config
+    ports:
+      - "8000:8000"
+EOFINNER
+
+  # Pull the new image and start containers
+  docker-compose pull
+  docker-compose up -d
+
+  # Verify deployment
+  echo "Deployment completed, verifying..."
+  sleep 10
+  if docker-compose ps | grep -q "Up"; then
+    echo "Deployment verification: SUCCESS"
+  else
+    echo "Deployment verification: FAILED"
+    echo "Attempting automatic rollback..."
+    if [ -f "docker-compose.previous.yml" ]; then
+      mv docker-compose.previous.yml docker-compose.yml
+      docker-compose up -d
+      echo "Rolled back to previous version"
+      exit 1
+    fi
+  fi
+EOF
+
+# Set up monitoring
+./scripts/setup_monitoring.sh $ENVIRONMENT $VERSION
+
+echo "=== Deployment completed successfully ==="
