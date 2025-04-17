@@ -35,9 +35,7 @@ def test_sheets_credentials() -> None:
             "https://www.googleapis.com/auth/spreadsheets",
             "https://www.googleapis.com/auth/drive",
         ]
-        credentials: Credentials = Credentials.from_service_account_file(
-            credentials_path, scopes=scopes
-        )
+        credentials: Credentials = Credentials.from_service_account_file(credentials_path, scopes=scopes)
         client: gspread.Client = gspread.authorize(credentials)
         print("✓ Authentication successful!")
 

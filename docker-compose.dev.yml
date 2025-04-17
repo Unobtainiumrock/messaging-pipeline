@@ -29,3 +29,4 @@ services:
     # dns:
     #   - 8.8.8.8
     #   - 8.8.4.4
+    user: '${UID:-1000}:${GID:-1000}' # Default to 1000:1000 if not provided

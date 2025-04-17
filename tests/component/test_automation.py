@@ -1,4 +1,5 @@
 """Tests for automation modules."""
+
 import pytest
 from unittest.mock import MagicMock, patch
 import os

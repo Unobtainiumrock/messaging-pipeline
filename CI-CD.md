@@ -169,3 +169,43 @@ For more information, refer to:
 - [GitHub Environments](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
 
 - [Snyk Stuff](https://docs.snyk.io/snyk-cli/using-the-snyk-cli/snyk-cli-for-github-actions)
+
+# Clarity on the Data Flow From Host to Docker Container
+
+This is with respect to if I'm developing on host and do a git commit. It tracks the flow of how the pre-commit hooks are ran.
+
+---
+
+Yes, you've got it exactly right! Here's the complete flow when committing from your host machine:
+
+1. **Host**: You run `git commit`
+
+2. **Host**: Git triggers `.git/hooks/pre-commit` in your local repo
+
+3. **Host**: This hook runs `./scripts/docker-pre-commit.sh`
+
+4. **Host**: This script spins up a Docker container via docker-compose
+
+5. **Container**: Docker entrypoint script runs first (setting up environment)
+
+6. **Container**: After entrypoint, it runs `pre-commit run --files "$@"`
+
+7. **Container**: The pre-commit program reads `.pre-commit-config.yaml`
+
+8. **Container**: Pre-commit runs all the hooks defined in that config file
+
+9. **Container**: Success/failure is returned to your host machine
+
+You're correct that we don't rely on Git hooks inside the container - we directly run the pre-commit program inside Docker. Your project folder is mounted as a volume, so the container can access all your files including the config file.
+
+This approach gives you the best of both worlds:
+
+- You get to use your normal Git workflow on your host machine
+
+- All the checks run in the consistent Docker environment
+
+- Everyone on the team gets identical results
+
+The issue occurs when you're already inside Docker (after `make docker-shell`) and try to commit - the hook tries to spin up another Docker container, which doesn't work.
+
+---

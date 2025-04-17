@@ -1,4 +1,5 @@
 """Tests for storage modules."""
+
 import pytest
 from unittest.mock import MagicMock, patch
 import os

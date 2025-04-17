@@ -1,4 +1,5 @@
 """Discord connector for fetching messages from Discord channels and DMs."""
+
 import os
 import logging
 import asyncio

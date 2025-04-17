@@ -1,4 +1,5 @@
 """Google Calendar integration for scheduling interviews."""
+
 import os
 import logging
 from typing import Dict, Any, List, Optional

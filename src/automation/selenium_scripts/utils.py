@@ -1,4 +1,5 @@
 """Selenium utilities for web automation."""
+
 import logging
 import time
 from typing import Optional, Dict, Any, Callable

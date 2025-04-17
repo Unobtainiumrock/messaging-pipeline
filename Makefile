@@ -57,8 +57,10 @@ docker-run:
 	# docker-compose run --rm app sh -c "uv pip install -e . && pytest $(PYTEST_ARGS)"
 
 docker-run-dev:
-	GIT_USER_NAME="$$(git config user.name)" \
-	GIT_USER_EMAIL="$$(git config user.email)" \
+	GIT_USER_NAME=$$(git config --get user.name) \
+	GIT_USER_EMAIL=$$(git config --get user.email) \
+	UID=$$(id -u) \
+	GID=$$(id -g) \
 	docker-compose -f docker-compose.dev.yml up
 
 docker-run-prod:
@@ -110,6 +112,8 @@ docker-setup:
 docker-shell:
 	GIT_USER_NAME="$$(git config --get user.name)" \
 	GIT_USER_EMAIL="$$(git config --get user.email)" \
+	UID=$$(id -u) \
+	GID=$$(id -g) \
 	docker-compose -f docker-compose.dev.yml run --rm \
 	-e GIT_USER_NAME \
 	-e GIT_USER_EMAIL \

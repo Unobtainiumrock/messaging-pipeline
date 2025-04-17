@@ -1,4 +1,5 @@
 """Test OpenAI API credentials."""
+
 import os
 import openai
 import sys
@@ -17,9 +18,7 @@ def test_openai_credentials():
     api_key = os.environ.get("OPENAI_API_KEY")
     if not api_key:
         print(f"- API Key: {Fore.RED}✗ Not found{Style.RESET_ALL}")
-        print(
-            f"\n{Fore.RED}❌ ERROR: OpenAI API key not found in environment variables.{Style.RESET_ALL}"
-        )
+        print(f"\n{Fore.RED}❌ ERROR: OpenAI API key not found in environment variables.{Style.RESET_ALL}")
         print("Please add your OpenAI API key to the .env file as OPENAI_API_KEY.")
         pytest.skip("OpenAI API key not found in environment variables")
 

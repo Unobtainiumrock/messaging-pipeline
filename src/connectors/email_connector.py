@@ -4,6 +4,7 @@ Email connector module for interacting with email providers like Gmail and Outlo
 Provides functionality to fetch messages and send replies through a unified interface,
 abstracting away the differences between email service providers.
 """
+
 import os
 import base64
 import logging
@@ -90,10 +91,7 @@ class EmailConnector:
             results = []
             for msg in messages.get("messages", []):
                 message_data = (
-                    self.service.users()
-                    .messages()
-                    .get(userId="me", id=msg["id"], format="full")
-                    .execute()
+                    self.service.users().messages().get(userId="me", id=msg["id"], format="full").execute()
                 )
 
                 # Process headers to get metadata

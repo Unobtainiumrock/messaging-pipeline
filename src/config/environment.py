@@ -14,10 +14,12 @@ else:  # development
     RETRY_ATTEMPTS = 2
     TIMEOUT = 10
 
+
 def is_production():
     """Check if running in production environment"""
     return ENVIRONMENT == "production"
 
+
 def is_development():
     """Check if running in development environment"""
-    return ENVIRONMENT == "development" 
+    return ENVIRONMENT == "development"

@@ -60,6 +60,10 @@ dev = [
 
     # Type Checking
     "pytype>=2023.10.17",
+
+    # NLP processing
+    "spacy>=3.5.0",
+    "spacy_llm>=0.6.0",
 ]
 
 [tool.hatch.build.targets.wheel]

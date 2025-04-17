@@ -68,9 +68,7 @@ def test_calendly_credentials() -> None:
                 else:
                     print("⚠️ Warning: No event types found. Create some in your Calendly account.")
             else:
-                print(
-                    f"⚠️ Warning: Couldn't fetch event types. Status code: {event_response.status_code}"
-                )
+                print(f"⚠️ Warning: Couldn't fetch event types. Status code: {event_response.status_code}")
 
         print("\n✅ SUCCESS: Calendly credentials are working correctly!")
 

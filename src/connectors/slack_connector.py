@@ -1,4 +1,5 @@
 """Slack connector for fetching messages from Slack channels and DMs."""
+
 import os
 import logging
 from typing import List, Dict, Any

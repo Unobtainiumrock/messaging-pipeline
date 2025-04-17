@@ -1,4 +1,5 @@
 """Google Sheets storage module for interacting with Google Sheets API."""
+
 import os
 import logging
 from typing import Dict, List, Any, Optional
@@ -116,9 +117,7 @@ class GoogleSheetsStorage:
 
             # Format message data for sheet
             content_preview = (
-                message["content"][:100] + "..."
-                if len(message["content"]) > 100
-                else message["content"]
+                message["content"][:100] + "..." if len(message["content"]) > 100 else message["content"]
             )
             timestamp = message.get("timestamp", "")
 

@@ -1,4 +1,5 @@
 """NLP processor using spaCy with LLM integration for message analysis."""
+
 import os
 import logging
 from typing import Dict, List, Any
@@ -109,9 +110,7 @@ class NLPProcessor:
             ]
 
             keywords = [
-                token.text
-                for token in doc
-                if not token.is_stop and not token.is_punct and token.is_alpha
+                token.text for token in doc if not token.is_stop and not token.is_punct and token.is_alpha
             ]
 
             result = {

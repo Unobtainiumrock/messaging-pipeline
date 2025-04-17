@@ -1,3 +1,1 @@
-"""
-Browser automation modules for web scraping and interaction.
-""" 
+"""Browser automation modules for web scraping and interaction."""

@@ -19,7 +19,15 @@ repos:
         entry: bash -c 'pytype --python-version=3.11 $(git diff --cached --name-only --diff-filter=ACM "*.py" | xargs)'
         language: python
         types: [python]
-        additional_dependencies: [pytype==2023.10.17, tiktoken, python-dotenv, openai>=1.0.0]
+        additional_dependencies:
+          [
+            pytype==2023.10.17,
+            tiktoken,
+            python-dotenv,
+            openai>=1.0.0,
+            spacy>=3.5.0,
+            spacy_llm>=0.6.0,
+          ]
         pass_filenames: false
 
       - id: typescript-strict-check

@@ -1,4 +1,5 @@
 """Configure pytest for testing the Communication Centralizer."""
+
 import sys
 import os
 import shutil

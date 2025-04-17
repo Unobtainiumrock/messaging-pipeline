@@ -1,4 +1,5 @@
 """LinkedIn connector using PhantomBuster for fetching LinkedIn messages."""
+
 import os
 import time
 import logging
@@ -73,7 +74,10 @@ class LinkedInConnector:
     def _launch_agent(self, agent_id: str) -> Dict[str, Any]:
         """Launch a PhantomBuster agent by ID."""
         url = f"{self.base_url}/container/launch"
-        headers = {"X-Phantombuster-Key": self.api_key, "Content-Type": "application/json"}
+        headers = {
+            "X-Phantombuster-Key": self.api_key,
+            "Content-Type": "application/json",
+        }
         data = {"id": agent_id, "arguments": {}}
 
         response = requests.post(url, headers=headers, json=data)

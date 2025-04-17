@@ -1,4 +1,5 @@
 """Calendly integration for scheduling interviews."""
+
 import os
 import logging
 import requests

@@ -1,4 +1,5 @@
 """Tests for scheduling modules."""
+
 import pytest
 from unittest.mock import MagicMock, patch
 import os
@@ -91,9 +92,7 @@ class TestGoogleCalendarScheduler:
     @pytest.fixture
     def google_calendar_scheduler(self):
         """Create a Google Calendar scheduler for testing."""
-        with patch(
-            "src.scheduling.google_calendar.service_account.Credentials.from_service_account_file"
-        ):
+        with patch("src.scheduling.google_calendar.service_account.Credentials.from_service_account_file"):
             with patch("src.scheduling.google_calendar.build") as mock_build:
                 mock_service = MagicMock()
                 mock_build.return_value = mock_service
@@ -159,9 +158,7 @@ class TestGoogleCalendarScheduler:
                 }
             }
         }
-        google_calendar_scheduler.service.freebusy().query().execute.return_value = (
-            mock_freebusy_response
-        )
+        google_calendar_scheduler.service.freebusy().query().execute.return_value = mock_freebusy_response
 
         # Test
         with patch("src.scheduling.google_calendar.datetime") as mock_datetime:
