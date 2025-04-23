@@ -1,3 +1,8 @@
+# Quick Notes
+
+This is an example of a pipeline meant to be shared with someone. It was midway through some changes in the `.pre-commit-config.yaml` file, where dependencies for different stages of the pre-commmit were being removed, since those are now all in Docker. If there's any questions on how to fix the small bug introduced by this transition, feel free to reach out to my on [LinkedIn](https://www.linkedin.com/in/unobtainiumrock/). It should be straightforward to resolve yourself though. 
+
+
 # Communication Centralizer
 
 An automated system that consolidates messages from multiple platforms (Email, LinkedIn, Handshake, Slack, Discord, etc.) into a single Google Sheet, then uses NLP to detect interview requests and auto-schedules them with Calendly and Google Calendar.
